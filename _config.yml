@@ -13,8 +13,8 @@ timezone:
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
-url: http://yoursite.com
-root: /
+url: https://zzy896.github.io/my-blogs/
+root: /my-blogs
 permalink: :year/:month/:day/:title/
 permalink_defaults:
 
@@ -80,3 +80,4 @@ theme: landscape
 deploy:
   type: git
   repo: https://github.com/zzy896/my-blogs.git
+  branch: master
