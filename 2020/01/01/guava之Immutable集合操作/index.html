@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+
+  
+  <title>guava之Immutable集合操作 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="guava是google的一个库，弥补了java语言的很多方面的不足，很多在java8中已有实现，暂时不展开。Collections是jdk提供的一个工具类。1、JDK中实现immutable集合在JDK中提供了Collections.unmodifiableXXX系列方法来实现不可变集合, 但是存在一些问题，下面我们先看一个具体实例：1234567891011121314151617181920">
+<meta property="og:type" content="article">
+<meta property="og:title" content="guava之Immutable集合操作">
+<meta property="og:url" content="https://zzy896.github.io/my-blogs/2020/01/01/guava之Immutable集合操作/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="guava是google的一个库，弥补了java语言的很多方面的不足，很多在java8中已有实现，暂时不展开。Collections是jdk提供的一个工具类。1、JDK中实现immutable集合在JDK中提供了Collections.unmodifiableXXX系列方法来实现不可变集合, 但是存在一些问题，下面我们先看一个具体实例：1234567891011121314151617181920">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2020-01-01T02:08:15.821Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="guava之Immutable集合操作">
+<meta name="twitter:description" content="guava是google的一个库，弥补了java语言的很多方面的不足，很多在java8中已有实现，暂时不展开。Collections是jdk提供的一个工具类。1、JDK中实现immutable集合在JDK中提供了Collections.unmodifiableXXX系列方法来实现不可变集合, 但是存在一些问题，下面我们先看一个具体实例：1234567891011121314151617181920">
+  
+    <link rel="alternate" href="/my-blogs/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/my-blogs/css/style.css">
+</head>
+</html>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/my-blogs/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/my-blogs/">Home</a>
+        
+          <a class="main-nav-link" href="/my-blogs/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/my-blogs/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://zzy896.github.io/my-blogs"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-guava之Immutable集合操作" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/my-blogs/2020/01/01/guava之Immutable集合操作/" class="article-date">
+  <time datetime="2020-01-01T01:58:29.000Z" itemprop="datePublished">2020-01-01</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      guava之Immutable集合操作
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><strong><em>guava是google的一个库，弥补了java语言的很多方面的不足，很多在java8中已有实现，暂时不展开。Collections是jdk提供的一个工具类。</em></strong><br><strong>1、JDK中实现immutable集合</strong><br>在JDK中提供了Collections.unmodifiableXXX系列方法来实现不可变集合, 但是存在一些问题，下面我们先看一个具体实例：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">public class ImmutableTest &#123;</span><br><span class="line"></span><br><span class="line">    @Test</span><br><span class="line">    public void <span class="function"><span class="title">testJDKImmutable</span></span>()&#123;</span><br><span class="line">        List&lt;String&gt; list=new ArrayList&lt;String&gt;();</span><br><span class="line">        list.add(<span class="string">"a"</span>);</span><br><span class="line">        list.add(<span class="string">"b"</span>);</span><br><span class="line">        list.add(<span class="string">"c"</span>);</span><br><span class="line"></span><br><span class="line">        //通过list创建一个不可变的unmodifiableList集合</span><br><span class="line">        List&lt;String&gt; unmodifiableList=Collections.unmodifiableList(list);</span><br><span class="line">        System.out.println(unmodifiableList);</span><br><span class="line"></span><br><span class="line">        //通过list添加元素</span><br><span class="line">        list.add(<span class="string">"ddd"</span>);</span><br><span class="line">        System.out.println(<span class="string">"往list添加一个元素:"</span>+list);</span><br><span class="line">        System.out.println(<span class="string">"通过list添加元素之后的unmodifiableList:"</span>+unmodifiableList);</span><br><span class="line"></span><br><span class="line">        //通过unmodifiableList添加元素</span><br><span class="line">        unmodifiableList.add(<span class="string">"eee"</span>);</span><br><span class="line">        System.out.println(<span class="string">"往unmodifiableList添加一个元素:"</span>+unmodifiableList);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>运行结果：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">[a,b,c]</span><br><span class="line">往list添加一个元素:[a,b,c,ddd]</span><br><span class="line">通过list添加元素之后的unmodifiableList:[a,b,c,ddd]</span><br><span class="line"></span><br><span class="line">java.lang.UnsupportedOperationException </span><br><span class="line">      at java.util.Collections<span class="variable">$UnmodifiableCollection</span>.add(Collections.java:1055)</span><br></pre></td></tr></table></figure></p>
+<p>通过运行结果我们可以看出：虽然unmodifiableList不可以直接添加元素，但是我的list是可以添加元素的，而list的改变也会使unmodifiableList改变。<br>所以说Collections.unmodifiableList实现的不是真正的不可变集合。</p>
+<p><strong>2、Guava的immutable集合</strong><br>Guava提供了对JDK里标准集合类里的immutable版本的简单方便的实现，以及Guava自己的一些专门集合类的immutable实现。当你不希望修改一个集合类，<br>或者想做一个常量集合类的时候，使用immutable集合类就是一个最佳的编程实践。</p>
+<p>注意：每个Guava immutable集合类的实现都拒绝null值。我们做过对Google内部代码的全面的调查，并且发现只有5%的情况下集合类允许null值，而95%的情况下<br>都拒绝null值。万一你真的需要能接受null值的集合类，你可以考虑用Collections.unmodifiableXXX。<br>immutable集合可以有以下几种方式来创建：<br>　　1、用copyOf方法, 譬如, ImmutableSet.copyOf(set)<br>　　2、使用of方法，譬如，ImmutableSet.of(“a”, “b”, “c”)或者ImmutableMap.of(“a”, 1, “b”, 2)<br>　　3、使用Builder类<br>举例：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">@Test</span><br><span class="line">   public void <span class="function"><span class="title">testGuavaImmutable</span></span>()&#123;</span><br><span class="line"></span><br><span class="line">       List&lt;String&gt; list=new ArrayList&lt;String&gt;();</span><br><span class="line">       list.add(<span class="string">"a"</span>);</span><br><span class="line">       list.add(<span class="string">"b"</span>);</span><br><span class="line">       list.add(<span class="string">"c"</span>);</span><br><span class="line"></span><br><span class="line">       ImmutableList&lt;String&gt; imlist=ImmutableList.copyOf(list);</span><br><span class="line">       System.out.println(<span class="string">"imlist："</span>+imlist);</span><br><span class="line"></span><br><span class="line">       ImmutableList&lt;String&gt; imOflist=ImmutableList.of(<span class="string">"peida"</span>,<span class="string">"jerry"</span>,<span class="string">"harry"</span>);</span><br><span class="line">       System.out.println(<span class="string">"imOflist："</span>+imOflist);</span><br><span class="line"></span><br><span class="line">       ImmutableSortedSet&lt;String&gt; imSortList=ImmutableSortedSet.of(<span class="string">"a"</span>, <span class="string">"b"</span>, <span class="string">"c"</span>, <span class="string">"a"</span>, <span class="string">"d"</span>, <span class="string">"b"</span>);</span><br><span class="line">       System.out.println(<span class="string">"imSortList："</span>+imSortList);</span><br><span class="line"></span><br><span class="line">       list.add(<span class="string">"baby"</span>);</span><br><span class="line">       //关键看这里是否imlist也添加新元素了</span><br><span class="line">       System.out.println(<span class="string">"list添加新元素之后看imlist:"</span>+imlist);</span><br><span class="line"></span><br><span class="line">       ImmutableSet&lt;Color&gt; imColorSet =</span><br><span class="line">               ImmutableSet.&lt;Color&gt;builder()</span><br><span class="line">                       .add(new Color(0, 255, 255))</span><br><span class="line">                       .add(new Color(0, 191, 255))</span><br><span class="line">                       .build();</span><br><span class="line"></span><br><span class="line">       System.out.println(<span class="string">"imColorSet:"</span>+imColorSet);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<p>运行结果：发现imlist并未改变。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">mlist:[a,b,c]</span><br><span class="line">imOflist:[peida,jerry,harry]</span><br><span class="line">imSortList:[a,b,c,d]</span><br><span class="line">list添加新元素之后看imlist:[a,b,c]</span><br><span class="line">imColorSet:[java.awt.Color[r=0,g=255,b=255],java.awt.Color[r=0,g=191,b=255]]</span><br></pre></td></tr></table></figure></p>
+<p>对于排序的集合来说有例外，因为元素的顺序在构建集合的时候就被固定下来了。譬如，ImmutableSet.of(“a”, “b”, “c”, “a”, “d”, “b”)，对于这个集合的遍历顺序来说就是”a”, “b”, “c”, “d”。<br>更智能的copyOf<br>copyOf方法比你想象的要智能，ImmutableXXX.copyOf会在合适的情况下避免拷贝元素的操作－先忽略具体的细节，但是它的实现一般都是很“智能”的。譬如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">@Test</span><br><span class="line">        public void <span class="function"><span class="title">testCotyOf</span></span>()&#123;</span><br><span class="line">            ImmutableSet&lt;String&gt; imSet=ImmutableSet.of(<span class="string">"peida"</span>,<span class="string">"jerry"</span>,<span class="string">"harry"</span>,<span class="string">"lisa"</span>);</span><br><span class="line">            System.out.println(<span class="string">"imSet："</span>+imSet);</span><br><span class="line"></span><br><span class="line">            //<span class="built_in">set</span>直接转list</span><br><span class="line">            ImmutableList&lt;String&gt; imlist=ImmutableList.copyOf(imSet);</span><br><span class="line">            System.out.println(<span class="string">"imlist："</span>+imlist);</span><br><span class="line"></span><br><span class="line">            //list直接转SortedSet</span><br><span class="line">            ImmutableSortedSet&lt;String&gt; imSortSet=ImmutableSortedSet.copyOf(imSet);</span><br><span class="line">            System.out.println(<span class="string">"imSortSet："</span>+imSortSet);</span><br><span class="line"></span><br><span class="line">            List&lt;String&gt; list=new ArrayList&lt;String&gt;();</span><br><span class="line">            <span class="keyword">for</span>(int i=0;i&lt;=10;i++)&#123;</span><br><span class="line">                list.add(i+<span class="string">"x"</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            System.out.println(<span class="string">"list："</span>+list);</span><br><span class="line"></span><br><span class="line">            //截取集合部分元素</span><br><span class="line">            ImmutableList&lt;String&gt; imInfolist=ImmutableList.copyOf(list.subList(2, 8));</span><br><span class="line">            System.out.println(<span class="string">"imInfolist："</span>+imInfolist);</span><br></pre></td></tr></table></figure>
+<p>运行结果</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">imSet:[peida,jerry,harry,lisa]</span><br><span class="line">imlist:[peida,jerry,harry,lisa]</span><br><span class="line">imSortSet:[harry,jerry,lisa,peida]</span><br><span class="line">list:[0x,1x,2x,3x,4x,5x,6x,7x,8x,9x,10x]</span><br><span class="line">imInfoList:[2x,3x,4x,5x,6x,7x]</span><br></pre></td></tr></table></figure>
+<p>Guava集合和不可变对应关系<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">可变集合类型               可变集合源：JDK or Guava?         Guava不可变集合</span><br><span class="line">Collection                       JDK                         ImmutableCollection</span><br><span class="line">List                             JDK                         ImmutableList</span><br><span class="line">Set                              JDK                         ImmutableSet</span><br><span class="line">SortedSet/NavigableSet           JDK                         ImmutableSortedSet</span><br><span class="line">Map                              JDK                         ImmutableMap</span><br><span class="line">SortedMap                        JDK                         ImmutableSortedMap</span><br><span class="line">Multiset                         Guava                       ImmutableMultiset</span><br><span class="line">SortedMultiset                   Guava                       ImmutableSortedMultiset</span><br><span class="line">Multimap                         Guava                       ImmutableMultimap</span><br><span class="line">ListMultimap                     Guava                       ImmutableListMultimap</span><br><span class="line">SetMultimap                      Guava                       ImmutableSetMultimap</span><br><span class="line">BiMap                            Guava                       ImmutableBiMap</span><br><span class="line">ClassToInstanceMap               Guava                       ImmutableClassToInstanceMap</span><br><span class="line">Table                            Guava                       ImmutableTable</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://zzy896.github.io/my-blogs/2020/01/01/guava之Immutable集合操作/" data-id="ck4unvo810004pgssup26nron" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/my-blogs/2019/09/25/Lookup注解使用/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">spring方法注入@Lookup注解使用</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/09/">September 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/06/">June 2019</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/my-blogs/2020/01/01/guava之Immutable集合操作/">guava之Immutable集合操作</a>
+          </li>
+        
+          <li>
+            <a href="/my-blogs/2019/09/25/Lookup注解使用/">spring方法注入@Lookup注解使用</a>
+          </li>
+        
+          <li>
+            <a href="/my-blogs/2019/09/02/事务/">事务</a>
+          </li>
+        
+          <li>
+            <a href="/my-blogs/2019/09/02/实用SQL语句/">实用SQL语句</a>
+          </li>
+        
+          <li>
+            <a href="/my-blogs/2019/08/27/MySql分组查询知识点/">MySql分组查询知识点</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2020 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/my-blogs/" class="mobile-nav-link">Home</a>
+  
+    <a href="/my-blogs/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/my-blogs/fancybox/jquery.fancybox.css">
+  <script src="/my-blogs/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/my-blogs/js/script.js"></script>
+
+
+
+  </div>
+</body>
+</html>

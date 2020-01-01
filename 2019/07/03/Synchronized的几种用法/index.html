@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+
+  
+  <title>Synchronized的几种用法 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="我们都知道 Synchronized 是线程安全同步用的，大部分程序可能只会用到同步方法上面。其实 Synchronized 可以用到更多的场合，以下列举了以下几个用法。 1、同步普通方法这个也是我们用得最多的，只要涉及线程安全，上来就给方法来个同步锁。这种方法使用虽然最简单，但是只能作用在单例上面，如果不是单例，同步方法锁将失效。1234567891011/** * 用在普通方法 */priva">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Synchronized的几种用法">
+<meta property="og:url" content="https://zzy896.github.io/my-blogs/2019/07/03/Synchronized的几种用法/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="我们都知道 Synchronized 是线程安全同步用的，大部分程序可能只会用到同步方法上面。其实 Synchronized 可以用到更多的场合，以下列举了以下几个用法。 1、同步普通方法这个也是我们用得最多的，只要涉及线程安全，上来就给方法来个同步锁。这种方法使用虽然最简单，但是只能作用在单例上面，如果不是单例，同步方法锁将失效。1234567891011/** * 用在普通方法 */priva">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2020-01-01T01:18:36.747Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Synchronized的几种用法">
+<meta name="twitter:description" content="我们都知道 Synchronized 是线程安全同步用的，大部分程序可能只会用到同步方法上面。其实 Synchronized 可以用到更多的场合，以下列举了以下几个用法。 1、同步普通方法这个也是我们用得最多的，只要涉及线程安全，上来就给方法来个同步锁。这种方法使用虽然最简单，但是只能作用在单例上面，如果不是单例，同步方法锁将失效。1234567891011/** * 用在普通方法 */priva">
+  
+    <link rel="alternate" href="/my-blogs/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/my-blogs/css/style.css">
+</head>
+</html>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/my-blogs/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/my-blogs/">Home</a>
+        
+          <a class="main-nav-link" href="/my-blogs/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/my-blogs/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://zzy896.github.io/my-blogs"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-Synchronized的几种用法" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/my-blogs/2019/07/03/Synchronized的几种用法/" class="article-date">
+  <time datetime="2019-07-03T02:10:36.000Z" itemprop="datePublished">2019-07-03</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Synchronized的几种用法
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>我们都知道 Synchronized 是线程安全同步用的，大部分程序可能只会用到同步方法上面。其实 Synchronized 可以用到更多的场合，以下列举了以下几个用法。</p>
+<p><strong>1、同步普通方法</strong><br>这个也是我们用得最多的，只要涉及线程安全，上来就给方法来个同步锁。这种方法使用虽然最简单，但是只能作用在单例上面，如果不是单例，同步方法锁将失效。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * 用在普通方法</span><br><span class="line"> */</span><br><span class="line">private synchronized void <span class="function"><span class="title">synchronizedMethod</span></span>() &#123;</span><br><span class="line">    System.out.println(<span class="string">"synchronizedMethod"</span>);</span><br><span class="line">    try &#123;</span><br><span class="line">        Thread.sleep(2000);</span><br><span class="line">    &#125; catch (InterruptedException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>此时，同一个实例只有一个线程能获取锁进入这个方法。</p>
+<p><strong>2、同步静态方法</strong><br>同步静态方法，不管你有多少个类实例，同时只有一个线程能获取锁进入这个方法。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * 用在静态方法</span><br><span class="line"> */</span><br><span class="line">private synchronized static void <span class="function"><span class="title">synchronizedStaticMethod</span></span>() &#123;</span><br><span class="line">    System.out.println(<span class="string">"synchronizedStaticMethod"</span>);</span><br><span class="line">    try &#123;</span><br><span class="line">        Thread.sleep(2000);</span><br><span class="line">    &#125; catch (InterruptedException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>同步静态方法是类级别的锁，一旦任何一个线程进入这个方法，其他所有线程将无法访问这个类的任何同步类锁的方法。<br><strong>3、同步类</strong><br>下面提供了两种同步类的方法，锁住效果和同步静态方法一样，都是类级别的锁，同时只有一个线程能访问带有同步类锁的方法。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * 用在类</span><br><span class="line"> */</span><br><span class="line">private void <span class="function"><span class="title">synchronizedClass</span></span>() &#123;</span><br><span class="line">    synchronized (TestSynchronized.class) &#123;</span><br><span class="line">        System.out.println(<span class="string">"synchronizedClass"</span>);</span><br><span class="line">        try &#123;</span><br><span class="line">            Thread.sleep(2000);</span><br><span class="line">        &#125; catch (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * 用在类</span><br><span class="line"> */</span><br><span class="line">private void <span class="function"><span class="title">synchronizedGetClass</span></span>() &#123;</span><br><span class="line">    synchronized (this.getClass()) &#123;</span><br><span class="line">        System.out.println(<span class="string">"synchronizedGetClass"</span>);</span><br><span class="line">        try &#123;</span><br><span class="line">            Thread.sleep(2000);</span><br><span class="line">        &#125; catch (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里的两种用法是同步块的用法，这里表示只有获取到这个类锁才能进入这个代码块。</p>
+<p><strong>4、同步this实例</strong><br>这也是同步块的用法，表示锁住整个当前对象实例，只有获取到这个实例的锁才能进入这个方法。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * 用在this</span><br><span class="line"> */</span><br><span class="line">private void <span class="function"><span class="title">synchronizedThis</span></span>() &#123;</span><br><span class="line">    synchronized (this) &#123;</span><br><span class="line">        System.out.println(<span class="string">"synchronizedThis"</span>);</span><br><span class="line">        try &#123;</span><br><span class="line">            Thread.sleep(2000);</span><br><span class="line">        &#125; catch (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>用法和同步普通方法锁一样，都是锁住整个当前实例。<br><strong>5、同步对象实例</strong><br>这也是同步块的用法，和上面的锁住当前实例一样，这里表示锁住整个 LOCK 对象实例，只有获取到这个 LOCK 实例的锁才能进入这个方法。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * 用在对象</span><br><span class="line"> */</span><br><span class="line">private void <span class="function"><span class="title">synchronizedInstance</span></span>() &#123;</span><br><span class="line">    synchronized (LOCK) &#123;</span><br><span class="line">        System.out.println(<span class="string">"synchronizedInstance"</span>);</span><br><span class="line">        try &#123;</span><br><span class="line">            Thread.sleep(2000);</span><br><span class="line">        &#125; catch (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>另外，类锁与实例锁不相互阻塞，但相同的类锁，相同的当前实例锁，相同的对象锁会相互阻塞。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://zzy896.github.io/my-blogs/2019/07/03/Synchronized的几种用法/" data-id="ck4unvo7x0002pgss2azdm2tg" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/my-blogs/2019/07/03/到底什么是重入锁-一次搞清楚/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          到底什么是重入锁,一次搞清楚
+        
+      </div>
+    </a>
+  
+  
+    <a href="/my-blogs/2019/06/18/进程缓存之王/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">进程缓存之王</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/09/">September 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/06/">June 2019</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/my-blogs/2020/01/01/guava之Immutable集合操作/">guava之Immutable集合操作</a>
+          </li>
+        
+          <li>
+            <a href="/my-blogs/2019/09/25/Lookup注解使用/">spring方法注入@Lookup注解使用</a>
+          </li>
+        
+          <li>
+            <a href="/my-blogs/2019/09/02/事务/">事务</a>
+          </li>
+        
+          <li>
+            <a href="/my-blogs/2019/09/02/实用SQL语句/">实用SQL语句</a>
+          </li>
+        
+          <li>
+            <a href="/my-blogs/2019/08/27/MySql分组查询知识点/">MySql分组查询知识点</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2020 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/my-blogs/" class="mobile-nav-link">Home</a>
+  
+    <a href="/my-blogs/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/my-blogs/fancybox/jquery.fancybox.css">
+  <script src="/my-blogs/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/my-blogs/js/script.js"></script>
+
+
+
+  </div>
+</body>
+</html>

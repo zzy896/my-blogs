@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+
+  
+  <title>spring方法注入@Lookup注解使用 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="##情景分析在Spring的诸多应用场景中bean都是单例形式，当一个单利bean需要和一个非单利bean组合使用或者一个非单利bean和另一个非单利bean组合使用时，我们通常都是将依赖以属性的方式放到bean中来引用，然后以@Autowired来标记需要注入的属性。但是这种方式在bean的生命周期不同时将会出现很明显的问题，假设单利bean A需要一个非单利bean B（原型），我们在A中注入">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spring方法注入@Lookup注解使用">
+<meta property="og:url" content="https://zzy896.github.io/my-blogs/2019/09/25/Lookup注解使用/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="##情景分析在Spring的诸多应用场景中bean都是单例形式，当一个单利bean需要和一个非单利bean组合使用或者一个非单利bean和另一个非单利bean组合使用时，我们通常都是将依赖以属性的方式放到bean中来引用，然后以@Autowired来标记需要注入的属性。但是这种方式在bean的生命周期不同时将会出现很明显的问题，假设单利bean A需要一个非单利bean B（原型），我们在A中注入">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2020-01-01T01:18:36.717Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="spring方法注入@Lookup注解使用">
+<meta name="twitter:description" content="##情景分析在Spring的诸多应用场景中bean都是单例形式，当一个单利bean需要和一个非单利bean组合使用或者一个非单利bean和另一个非单利bean组合使用时，我们通常都是将依赖以属性的方式放到bean中来引用，然后以@Autowired来标记需要注入的属性。但是这种方式在bean的生命周期不同时将会出现很明显的问题，假设单利bean A需要一个非单利bean B（原型），我们在A中注入">
+  
+    <link rel="alternate" href="/my-blogs/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/my-blogs/css/style.css">
+</head>
+</html>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/my-blogs/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/my-blogs/">Home</a>
+        
+          <a class="main-nav-link" href="/my-blogs/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/my-blogs/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://zzy896.github.io/my-blogs"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-Lookup注解使用" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/my-blogs/2019/09/25/Lookup注解使用/" class="article-date">
+  <time datetime="2019-09-25T07:24:58.000Z" itemprop="datePublished">2019-09-25</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      spring方法注入@Lookup注解使用
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>##情景分析<br>在Spring的诸多应用场景中bean都是单例形式，当一个单利bean需要和一个非单利bean组合使用或者一个非单利bean和另一个非单利bean组合使用时，我们通常都是将依赖以属性的方式放到bean中来引用，然后以@Autowired来标记需要注入的属性。但是这种方式在bean的生命周期不同时将会出现很明显的问题，假设单利bean A需要一个非单利bean B（原型），我们在A中注入bean B，每次调用bean A中的方法时都会用到bean B，我们知道Spring Ioc容器只在容器初始化时执行一次，也就是bean A中的依赖bean B只有一次注入的机会，但是实际上bean B我们需要的是每次调用方法时都获取一个新的对象（原型）所以问题明显就是：我们需要bean B是一个原型bean，而事实上bean B的依赖只注入了一次变成了事实上的单利bean。</p>
+<p>###代码说明<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">@Component</span><br><span class="line">@Scope(<span class="string">"prototype"</span>)</span><br><span class="line">public class PrototypeBean &#123;</span><br><span class="line">    private static final Logger logger= LoggerFactory.getLogger(PrototypeBean.class);</span><br><span class="line">    </span><br><span class="line">    public void <span class="function"><span class="title">say</span></span>() &#123;</span><br><span class="line">        logger.info(<span class="string">"say something..."</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">@Component</span><br><span class="line">public class SingletonBean &#123;</span><br><span class="line">    private static final Logger logger = LoggerFactory.getLogger(SingletonBean.class);</span><br><span class="line">    </span><br><span class="line">    @Autowired</span><br><span class="line">    private PrototypeBean bean;</span><br><span class="line">    </span><br><span class="line">    public void <span class="function"><span class="title">print</span></span>() &#123;</span><br><span class="line">        logger.info(<span class="string">"Bean SingletonBean's HashCode : &#123;&#125;"</span>,bean.hashCode());</span><br><span class="line">        bean.say();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">@SpringBootApplication</span><br><span class="line">public class SampleApplication &#123;</span><br><span class="line">    private static final Logger logger = LoggerFactory.getLogger(SampleApplication.class);</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        SpringApplication.run(SampleApplication.class, args);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Bean public CommandLineRunner <span class="built_in">test</span>(final SingletonBean bean) &#123;</span><br><span class="line">        <span class="built_in">return</span> (args)-&gt; &#123;</span><br><span class="line">            logger.info(<span class="string">"测试单例bean和原型bean的调用"</span>);</span><br><span class="line">            int i =0;</span><br><span class="line">            <span class="keyword">while</span>(i&lt;3) &#123;</span><br><span class="line">                i++;</span><br><span class="line">                bean.print();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>##结果<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">2019-09-25 15:04:29,721 INFO :-- [main .. ] o.s.SampleApplication 测试单例bean和原型bean的调用 </span><br><span class="line">2019-09-25 15:04:29,723 INFO :-- [main .. ] o.s.a.SingletonBean Bean SingletonBean<span class="string">'s HashCode : 1713129148 </span></span><br><span class="line"><span class="string">2019-09-25 15:04:29,723 INFO :-- [main .. ] o.s.a.PrototypeBean say something... </span></span><br><span class="line"><span class="string">2019-09-25 15:04:29,723 INFO :-- [main .. ] o.s.a.SingletonBean Bean SingletonBean'</span>s HashCode : 1713129148 </span><br><span class="line">2019-09-25 15:04:29,724 INFO :-- [main .. ] o.s.a.PrototypeBean say something... </span><br><span class="line">2019-09-25 15:04:29,724 INFO :-- [main .. ] o.s.a.SingletonBean Bean SingletonBean<span class="string">'s HashCode : 1713129148 </span></span><br><span class="line"><span class="string">2019-09-25 15:04:29,724 INFO :-- [main .. ] o.s.a.PrototypeBean say something...</span></span><br></pre></td></tr></table></figure></p>
+<p>我们看到每次输出PrototypeBean的HashCode都是一样的，证明我们实际上并没有达到使用原型bean的目的。</p>
+<p>###解决方案<br>1、在bean A中引入ApplicationContext每次调用方法时用上下文的getBean(name,class)方法去重新获取bean B的实例。<br>2、使用@Lookup注解。<br>这两种解决方案都能解决我们遇到的问题，但是第二种相对而言更简单。以下给出两种解决方案的代码示例。</p>
+<p>###通过应用上下文ApplicationContext获取获取<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">@Component</span><br><span class="line">public class SingletonBean &#123;</span><br><span class="line">    private static final Logger logger = LoggerFactory.getLogger(SingletonBean.class);</span><br><span class="line">    </span><br><span class="line">    @Autowired</span><br><span class="line">    private ApplicationContext context;</span><br><span class="line">    </span><br><span class="line">    public void <span class="function"><span class="title">print</span></span>() &#123;</span><br><span class="line">        PrototypeBean bean = getFromApplicationContext();</span><br><span class="line">        logger.info(<span class="string">"Bean SingletonBean's HashCode : &#123;&#125;"</span>,bean.hashCode());</span><br><span class="line">        bean.say();</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    /**</span><br><span class="line">     * 每次都从ApplicatonContext中获取新的bean引用</span><br><span class="line">     * @<span class="built_in">return</span> PrototypeBean instance</span><br><span class="line">     */</span><br><span class="line">    PrototypeBean <span class="function"><span class="title">getFromApplicationContext</span></span>() &#123;</span><br><span class="line">        <span class="built_in">return</span> this.context.getBean(<span class="string">"prototypeBean"</span>,PrototypeBean.class);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>###结果<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">2019-09-25 15:10:01,485 INFO :-- [main .. ] o.s.SampleApplication 测试单例bean和原型bean的调用 </span><br><span class="line">2019-09-25 15:10:01,487 INFO :-- [main .. ] o.s.a.SingletonBean Bean SingletonBean<span class="string">'s HashCode : 376601041 </span></span><br><span class="line"><span class="string">2019-09-25 15:10:01,487 INFO :-- [main .. ] o.s.a.PrototypeBean say something... </span></span><br><span class="line"><span class="string">2019-09-25 15:10:01,487 INFO :-- [main .. ] o.s.a.SingletonBean Bean SingletonBean'</span>s HashCode : 2056499811 </span><br><span class="line">2019-09-25 15:10:01,487 INFO :-- [main .. ] o.s.a.PrototypeBean say something... </span><br><span class="line">2019-09-25 15:10:01,488 INFO :-- [main .. ] o.s.a.SingletonBean Bean SingletonBean<span class="string">'s HashCode : 890733699 </span></span><br><span class="line"><span class="string">2019-09-25 15:10:01,488 INFO :-- [main .. ] o.s.a.PrototypeBean say something...</span></span><br></pre></td></tr></table></figure></p>
+<p>我们看到每次我们调用print()方法时都会重新从应用上下文获取新的引用，达到了使用原型的目的。</p>
+<p>###通过@Lookup注解实现方法注入<br>使用方法注入的方法需要满足以下语法要求</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;public|protected&gt; [abstract] &lt;<span class="built_in">return</span>-type&gt; theMethodName(no-arguments);</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">@Component</span><br><span class="line">public abstract class SingletonBean &#123;</span><br><span class="line">    private static final Logger logger = LoggerFactory.getLogger(SingletonBean.class);</span><br><span class="line">    </span><br><span class="line">    public void <span class="function"><span class="title">print</span></span>() &#123;</span><br><span class="line">        PrototypeBean bean = methodInject();</span><br><span class="line">        logger.info(<span class="string">"Bean SingletonBean's HashCode : &#123;&#125;"</span>,bean.hashCode());</span><br><span class="line">        bean.say();</span><br><span class="line">    &#125;</span><br><span class="line">    // 也可以写成 @Lookup(<span class="string">"prototypeBean"</span>) 来指定需要注入的bean</span><br><span class="line">    @Lookup</span><br><span class="line">    protected abstract PrototypeBean methodInject();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>结果</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">2019-09-25 15:18:50,105 INFO :-- [main .. ] o.s.SampleApplication 测试单例bean和原型bean的调用 </span><br><span class="line">2019-09-25 15:18:50,108 INFO :-- [main .. ] o.s.a.SingletonBean Bean SingletonBean<span class="string">'s HashCode : 1349373781 </span></span><br><span class="line"><span class="string">2019-09-25 15:18:50,108 INFO :-- [main .. ] o.s.a.PrototypeBean say something... </span></span><br><span class="line"><span class="string">2019-09-25 15:18:50,108 INFO :-- [main .. ] o.s.a.SingletonBean Bean SingletonBean'</span>s HashCode : 1046820071 </span><br><span class="line">2019-09-25 15:18:50,109 INFO :-- [main .. ] o.s.a.PrototypeBean say something... </span><br><span class="line">2019-09-25 15:18:50,109 INFO :-- [main .. ] o.s.a.SingletonBean Bean SingletonBean<span class="string">'s HashCode : 1722645488 </span></span><br><span class="line"><span class="string">2019-09-25 15:18:50,110 INFO :-- [main .. ] o.s.a.PrototypeBean say something...</span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://zzy896.github.io/my-blogs/2019/09/25/Lookup注解使用/" data-id="ck4unvo7u0001pgssduu787vm" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/my-blogs/2020/01/01/guava之Immutable集合操作/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          guava之Immutable集合操作
+        
+      </div>
+    </a>
+  
+  
+    <a href="/my-blogs/2019/09/02/事务/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">事务</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/09/">September 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/06/">June 2019</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/my-blogs/2020/01/01/guava之Immutable集合操作/">guava之Immutable集合操作</a>
+          </li>
+        
+          <li>
+            <a href="/my-blogs/2019/09/25/Lookup注解使用/">spring方法注入@Lookup注解使用</a>
+          </li>
+        
+          <li>
+            <a href="/my-blogs/2019/09/02/事务/">事务</a>
+          </li>
+        
+          <li>
+            <a href="/my-blogs/2019/09/02/实用SQL语句/">实用SQL语句</a>
+          </li>
+        
+          <li>
+            <a href="/my-blogs/2019/08/27/MySql分组查询知识点/">MySql分组查询知识点</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2020 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/my-blogs/" class="mobile-nav-link">Home</a>
+  
+    <a href="/my-blogs/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/my-blogs/fancybox/jquery.fancybox.css">
+  <script src="/my-blogs/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/my-blogs/js/script.js"></script>
+
+
+
+  </div>
+</body>
+</html>

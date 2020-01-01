@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+
+  
+  <title>到底什么是重入锁,一次搞清楚 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="什么是重入锁 ##java.util.concurrent.locks.ReentrantLock这个是 JDK @since 1.5 添加的一种颗粒度更小的锁，它完全可以替代 synchronized 关键字来实现它的所有功能，而且 ReentrantLock 锁的灵活度要远远大于 synchronized 关键字。从类结构图看出，ReentrantLock 实现了 Lock 接口，Reentr">
+<meta property="og:type" content="article">
+<meta property="og:title" content="到底什么是重入锁,一次搞清楚">
+<meta property="og:url" content="https://zzy896.github.io/my-blogs/2019/07/03/到底什么是重入锁-一次搞清楚/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="什么是重入锁 ##java.util.concurrent.locks.ReentrantLock这个是 JDK @since 1.5 添加的一种颗粒度更小的锁，它完全可以替代 synchronized 关键字来实现它的所有功能，而且 ReentrantLock 锁的灵活度要远远大于 synchronized 关键字。从类结构图看出，ReentrantLock 实现了 Lock 接口，Reentr">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://zzy896.github.io/my-blogs/2019/07/03/到底什么是重入锁-一次搞清楚/css/images/blogs1/00.png">
+<meta property="og:image" content="https://zzy896.github.io/my-blogs/2019/07/03/到底什么是重入锁-一次搞清楚/css/images/blogs1/01.png">
+<meta property="og:updated_time" content="2020-01-01T01:18:36.751Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="到底什么是重入锁,一次搞清楚">
+<meta name="twitter:description" content="什么是重入锁 ##java.util.concurrent.locks.ReentrantLock这个是 JDK @since 1.5 添加的一种颗粒度更小的锁，它完全可以替代 synchronized 关键字来实现它的所有功能，而且 ReentrantLock 锁的灵活度要远远大于 synchronized 关键字。从类结构图看出，ReentrantLock 实现了 Lock 接口，Reentr">
+<meta name="twitter:image" content="https://zzy896.github.io/my-blogs/2019/07/03/到底什么是重入锁-一次搞清楚/css/images/blogs1/00.png">
+  
+    <link rel="alternate" href="/my-blogs/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/my-blogs/css/style.css">
+</head>
+</html>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/my-blogs/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/my-blogs/">Home</a>
+        
+          <a class="main-nav-link" href="/my-blogs/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/my-blogs/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://zzy896.github.io/my-blogs"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-到底什么是重入锁-一次搞清楚" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/my-blogs/2019/07/03/到底什么是重入锁-一次搞清楚/" class="article-date">
+  <time datetime="2019-07-03T02:18:22.000Z" itemprop="datePublished">2019-07-03</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      到底什么是重入锁,一次搞清楚
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><strong>什么是重入锁</strong></p>
+<p>##java.util.concurrent.locks.ReentrantLock<br>这个是 JDK @since 1.5 添加的一种颗粒度更小的锁，它完全可以替代 synchronized 关键字来实现它的所有功能，而且 ReentrantLock 锁的灵活度要远远大于 synchronized 关键字。<br><img src="css/images/blogs1/00.png" alt="avatar"><br>从类结构图看出，ReentrantLock 实现了 Lock 接口，ReentrantLock 只是 Lock 接口的一个实现而已。</p>
+<p>##java.util.concurrent.locks.Lock<br>它们都是 java.util.concurrent 包里面的内容（俗称 JUC、并发包），也都是 JDK 1.5 开始加入的。</p>
+<p><strong>为什么叫重入锁呢？</strong><br>ReentrantLock，我们把它拆开来看就明了了。</p>
+<p>Re-Entrant-Lock：即表示可重新反复进入的锁，但仅限于当前线程；</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">public void <span class="function"><span class="title">m</span></span>() &#123;</span><br><span class="line">    lock.lock();</span><br><span class="line">    lock.lock();</span><br><span class="line">    try &#123;</span><br><span class="line">      // ... method body</span><br><span class="line">    &#125; finally &#123;</span><br><span class="line">      lock.unlock()</span><br><span class="line">      lock.unlock()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如示例代码所示，当前线程可以反复加锁，但也需要释放同样加锁次数的锁，即重入了多少次，就要释放多少次，不然也会导入锁不被释放。</p>
+<p>试想一下，如果不设计成可重入锁，那自己如果反复给自己加锁，不是会把自己加死锁了吗？所以，到现在，重入锁的概念大概应该清楚了吧？</p>
+<p><strong>重入锁最重要的几个方法</strong></p>
+<p>这几个方法都是 Lock 接口中定义的：<br><img src="css/images/blogs1/01.png" alt="avatar"><br><strong>1）lock()</strong></p>
+<p>获取锁，有以下三种情况：</p>
+<p>锁空闲：直接获取锁并返回，同时设置锁持有者数量为：1；<br>当前线程持有锁：直接获取锁并返回，同时锁持有者数量递增1；<br>其他线程持有锁：当前线程会休眠等待，直至获取锁为止；<br><strong>2）lockInterruptibly()</strong></p>
+<p>获取锁，逻辑和 lock() 方法一样，但这个方法在获取锁过程中能响应中断。</p>
+<p><strong>3）tryLock()</strong></p>
+<p>从关键字字面理解，这是在尝试获取锁，获取成功返回：true，获取失败返回：false, 这个方法不会等待，有以下三种情况：</p>
+<p>锁空闲：直接获取锁并返回：true，同时设置锁持有者数量为：1；<br>当前线程持有锁：直接获取锁并返回：true，同时锁持有者数量递增1；<br>其他线程持有锁：获取锁失败，返回：false；<br><strong>4）tryLock(long timeout, TimeUnit unit)</strong></p>
+<p>逻辑和 tryLock() 差不多，只是这个方法是带时间的。</p>
+<p><strong>5）unlock()</strong></p>
+<p>释放锁，每次锁持有者数量递减 1，直到 0 为止。所以，现在知道为什么 lock 多少次，就要对应 unlock 多少次了吧。</p>
+<p><strong>6）newCondition</strong></p>
+<p>返回一个这个锁的 Condition 实例，可以实现 synchronized 关键字类似 wait/ notify 实现多线程通信的功能，不过这个比 wait/ notify 要更灵活，更强大！</p>
+<p><strong>重入锁大概的用法</strong><br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">class X &#123;</span><br><span class="line"></span><br><span class="line">  private final ReentrantLock lock = new ReentrantLock();</span><br><span class="line"></span><br><span class="line">  // ...</span><br><span class="line"></span><br><span class="line">  public void <span class="function"><span class="title">m</span></span>() &#123;</span><br><span class="line">    lock.lock();  // block until condition holds</span><br><span class="line">    try &#123;</span><br><span class="line">      // ... method body</span><br><span class="line">    &#125; finally &#123;</span><br><span class="line">      lock.unlock()</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;&#125;</span><br></pre></td></tr></table></figure></p>
+<p>看见没有，加锁和释放锁都在方法里面进行，可以自由控制，比 synchronized 更灵活，更方便。但要注意的是，释放锁操作必须在 finally 里面，不然如果出现异常导致锁不能被正常释放，进而会卡死后续所有访问该锁的线程。</p>
+<p>synchronized 是重入锁吗？</p>
+<p><strong>那么问题来了，synchronized 是重入锁吗？</strong></p>
+<p>你可能会说不是，因为 ReentrantLock 既然是重入锁，根据推理，相反，那 synchronized 肯定就不是重入锁，那你就错了。</p>
+<p>答案是：yes，为什么？看下面的例子：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">public synchronized void <span class="function"><span class="title">operation</span></span>()&#123;</span><br><span class="line">    add();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public synchronized void <span class="function"><span class="title">add</span></span>()&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>operation 方法调用了 add 方法，两个方法都是用 synchronized 修饰的，add()  方法可以成功获取当前线程 operation() 方法已经获取到的锁，说明 synchronized 就是可重入锁。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://zzy896.github.io/my-blogs/2019/07/03/到底什么是重入锁-一次搞清楚/" data-id="ck4unvo830005pgss5tiw6u9w" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/my-blogs/2019/07/08/如何在Maven项目模块A引用子模块B的war项目的类文件/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          如何在Maven项目模块A引用子模块B的war项目的类文件?
+        
+      </div>
+    </a>
+  
+  
+    <a href="/my-blogs/2019/07/03/Synchronized的几种用法/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Synchronized的几种用法</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/09/">September 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/06/">June 2019</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/my-blogs/2020/01/01/guava之Immutable集合操作/">guava之Immutable集合操作</a>
+          </li>
+        
+          <li>
+            <a href="/my-blogs/2019/09/25/Lookup注解使用/">spring方法注入@Lookup注解使用</a>
+          </li>
+        
+          <li>
+            <a href="/my-blogs/2019/09/02/事务/">事务</a>
+          </li>
+        
+          <li>
+            <a href="/my-blogs/2019/09/02/实用SQL语句/">实用SQL语句</a>
+          </li>
+        
+          <li>
+            <a href="/my-blogs/2019/08/27/MySql分组查询知识点/">MySql分组查询知识点</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2020 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/my-blogs/" class="mobile-nav-link">Home</a>
+  
+    <a href="/my-blogs/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/my-blogs/fancybox/jquery.fancybox.css">
+  <script src="/my-blogs/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/my-blogs/js/script.js"></script>
+
+
+
+  </div>
+</body>
+</html>
