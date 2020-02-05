@@ -5,15 +5,19 @@
   
 
   
-  <title>Archives: 2020/1 | Hexo</title>
+  <title>idea配置查看代码汇编指令插件 | Hexo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta property="og:type" content="website">
-<meta property="og:title" content="Hexo">
-<meta property="og:url" content="https://zzy896.github.io/my-blogs/archives/2020/01/index.html">
+  <meta name="description" content="一、工具12hsdis-amd64.dllhsdis-amd64.lib 二.开始配置：  将上述两个文件放在你的 jre/bin 路径下的路径里。2.去idea 去配置启动参数：-server -Xcomp -XX:+UnlockDiagnosticVMOptions -XX:+PrintAssembly -XX:CompileCommand=compileonly,ClassName.meth">
+<meta property="og:type" content="article">
+<meta property="og:title" content="idea配置查看代码汇编指令插件">
+<meta property="og:url" content="https://zzy896.github.io/my-blogs/2020/02/05/idea配置查看代码汇编指令插件/index.html">
 <meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="一、工具12hsdis-amd64.dllhsdis-amd64.lib 二.开始配置：  将上述两个文件放在你的 jre/bin 路径下的路径里。2.去idea 去配置启动参数：-server -Xcomp -XX:+UnlockDiagnosticVMOptions -XX:+PrintAssembly -XX:CompileCommand=compileonly,ClassName.meth">
 <meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2020-02-05T15:27:29.050Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Hexo">
+<meta name="twitter:title" content="idea配置查看代码汇编指令插件">
+<meta name="twitter:description" content="一、工具12hsdis-amd64.dllhsdis-amd64.lib 二.开始配置：  将上述两个文件放在你的 jre/bin 路径下的路径里。2.去idea 去配置启动参数：-server -Xcomp -XX:+UnlockDiagnosticVMOptions -XX:+PrintAssembly -XX:CompileCommand=compileonly,ClassName.meth">
   
     <link rel="alternate" href="/my-blogs/atom.xml" title="Hexo" type="application/atom+xml">
   
@@ -60,40 +64,56 @@
   </div>
 </header>
       <div class="outer">
-        <section id="main">
-  
-  
-    
-    
-      
-      
-      <section class="archives-wrap">
-        <div class="archive-year-wrap">
-          <a href="/my-blogs/archives/2020" class="archive-year">2020</a>
-        </div>
-        <div class="archives">
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/my-blogs/2020/01/01/guava之Immutable集合操作/" class="archive-article-date">
-  <time datetime="2020-01-01T01:58:29.000Z" itemprop="datePublished">Jan 1</time>
+        <section id="main"><article id="post-idea配置查看代码汇编指令插件" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/my-blogs/2020/02/05/idea配置查看代码汇编指令插件/" class="article-date">
+  <time datetime="2020-02-05T15:22:59.000Z" itemprop="datePublished">2020-02-05</time>
 </a>
-      
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/my-blogs/2020/01/01/guava之Immutable集合操作/">guava之Immutable集合操作</a>
+    <h1 class="article-title" itemprop="name">
+      idea配置查看代码汇编指令插件
     </h1>
   
 
-    </header>
-  </div>
-</article>
-  
-  
-    </div></section>
-  
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><strong>一、工具</strong><br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hsdis-amd64.dll</span><br><span class="line">hsdis-amd64.lib</span><br></pre></td></tr></table></figure></p>
+<p><strong>二.开始配置：</strong></p>
+<ol>
+<li>将上述两个文件放在你的 jre/bin 路径下的路径里。<br>2.去idea 去配置启动参数：-server -Xcomp -XX:+UnlockDiagnosticVMOptions -XX:+PrintAssembly -XX:CompileCommand=compileonly,<em>ClassName.method（</em>后面配置成自己的 “类名.方法名”)<br>3.设置jre路径为配置过的jre路径</li>
+</ol>
 
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://zzy896.github.io/my-blogs/2020/02/05/idea配置查看代码汇编指令插件/" data-id="ck69gvoyt0003ogssd0elxlhg" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/my-blogs/2020/02/03/分布式锁的几种实现方式/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">分布式锁的几种实现方式</div>
+    </a>
+  
+</nav>
+
+  
+</article>
 
 </section>
         
