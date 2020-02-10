@@ -214,3 +214,5 @@ public class SingletonDemo {
   禁止指令重排
  **2、volatile的应用：**
   最经典的就是单例模式。
+  
+  原文地址：https://www.jianshu.com/p/b05e4da39de9
