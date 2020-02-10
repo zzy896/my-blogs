@@ -114,11 +114,12 @@
 <p> <strong>最终版单例模式：</strong><br> 既然说到DCL版可能会出现指令重排的现象，所以最终版就是加上volatile。<br> <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">public class SingletonDemo &#123;</span><br><span class="line">    private static volatile SingletonDemo  singletonDemo = null;</span><br><span class="line">    private <span class="function"><span class="title">SingletonDemo</span></span>()&#123;</span><br><span class="line">        System.err.println(<span class="string">"构造方法被执行"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    public static SingletonDemo <span class="function"><span class="title">getInstance</span></span>()&#123;</span><br><span class="line">        <span class="keyword">if</span> (singletonDemo == null)&#123; // 第一次check</span><br><span class="line">            synchronized (SingletonDemo.class)&#123;</span><br><span class="line">                <span class="keyword">if</span> (singletonDemo == null) // 第二次check</span><br><span class="line">                    singletonDemo = new SingletonDemo();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">return</span> singletonDemo;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <p> <strong>总结：</strong><br> <strong>1、volatile特性：</strong></p>
 <p>  可见性<br>  不保证原子性<br>  禁止指令重排<br> <strong>2、volatile的应用：</strong><br>  最经典的就是单例模式。</p>
+<p>  原文地址：<a href="https://www.jianshu.com/p/b05e4da39de9" target="_blank" rel="noopener">https://www.jianshu.com/p/b05e4da39de9</a></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2020/02/10/volatile详解/" data-id="ck6fy7qng000ajwss683shigf" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2020/02/10/volatile详解/" data-id="ck6fyeisj000b7wss7m6i3xzt" class="article-share-link">Share</a>
       
       
     </footer>
@@ -159,7 +160,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2020/02/05/idea配置查看代码汇编指令插件/" data-id="ck6fy7qmt0004jwssr8ze1108" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2020/02/05/idea配置查看代码汇编指令插件/" data-id="ck6fyeirt00047wsskxwrvuzl" class="article-share-link">Share</a>
       
       
     </footer>
@@ -246,7 +247,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2020/02/03/分布式锁的几种实现方式/" data-id="ck6fy7qnm000cjwssbuwfbnm2" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2020/02/03/分布式锁的几种实现方式/" data-id="ck6fyeism000c7wssogy5vutr" class="article-share-link">Share</a>
       
       
     </footer>
@@ -294,7 +295,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2020/01/01/guava之Immutable集合操作/" data-id="ck6fy7qmr0003jwsstakv0awf" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2020/01/01/guava之Immutable集合操作/" data-id="ck6fyeirr00037wss2xr43nqh" class="article-share-link">Share</a>
       
       
     </footer>
@@ -342,7 +343,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2019/09/25/Lookup注解使用/" data-id="ck6fy7qmn0001jwss4v80voh7" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2019/09/25/Lookup注解使用/" data-id="ck6fyeirm00017wssklko9bwa" class="article-share-link">Share</a>
       
       
     </footer>
@@ -388,7 +389,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2019/09/02/事务/" data-id="ck6fy7qmv0005jwss42lbrkpl" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2019/09/02/事务/" data-id="ck6fyeiru00057wss3k3kltoa" class="article-share-link">Share</a>
       
       
     </footer>
@@ -435,7 +436,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2019/09/02/实用SQL语句/" data-id="ck6fy7qmz0008jwss1frh3bjy" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2019/09/02/实用SQL语句/" data-id="ck6fyeis000087wss2ds1ndsq" class="article-share-link">Share</a>
       
       
     </footer>
@@ -492,7 +493,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2019/08/27/MySql分组查询知识点/" data-id="ck6fy7qne0009jwss2qo3j21o" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2019/08/27/MySql分组查询知识点/" data-id="ck6fyeisc00097wss7k5sj222" class="article-share-link">Share</a>
       
       
     </footer>
@@ -530,7 +531,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2019/07/08/如何在Maven项目模块A引用子模块B的war项目的类文件/" data-id="ck6fy7qmy0007jwsstk1r4ugj" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2019/07/08/如何在Maven项目模块A引用子模块B的war项目的类文件/" data-id="ck6fyeirz00077wsst5xg7714" class="article-share-link">Share</a>
       
       
     </footer>
@@ -594,7 +595,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2019/07/03/到底什么是重入锁-一次搞清楚/" data-id="ck6fy7qmw0006jwssfxsu12u6" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2019/07/03/到底什么是重入锁-一次搞清楚/" data-id="ck6fyeirx00067wsscf3perp3" class="article-share-link">Share</a>
       
       
     </footer>

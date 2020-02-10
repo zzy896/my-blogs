@@ -14,7 +14,7 @@
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="一、volatile简介在单线程环境中，我们几乎用不到这个关键词，但是多线程环境中，这个关键词随处可见。总的来说，volatile有以下三个特性： 保证可见性；不保证原子性；禁止指令重排。下面就来详细的说说这三个特性。二、保证可见性1、什么是可见性？在说volatile保证可见性之前，先来说说什么叫可见性。谈到可见性，又不得不说JMM(java memory model)内存模型。JMM内存模型是">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2020-02-10T04:20:22.000Z">
+<meta property="og:updated_time" content="2020-02-10T04:24:46.936Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="volatile详解">
 <meta name="twitter:description" content="一、volatile简介在单线程环境中，我们几乎用不到这个关键词，但是多线程环境中，这个关键词随处可见。总的来说，volatile有以下三个特性： 保证可见性；不保证原子性；禁止指令重排。下面就来详细的说说这三个特性。二、保证可见性1、什么是可见性？在说volatile保证可见性之前，先来说说什么叫可见性。谈到可见性，又不得不说JMM(java memory model)内存模型。JMM内存模型是">
@@ -116,11 +116,12 @@
 <p> <strong>最终版单例模式：</strong><br> 既然说到DCL版可能会出现指令重排的现象，所以最终版就是加上volatile。<br> <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">public class SingletonDemo &#123;</span><br><span class="line">    private static volatile SingletonDemo  singletonDemo = null;</span><br><span class="line">    private <span class="function"><span class="title">SingletonDemo</span></span>()&#123;</span><br><span class="line">        System.err.println(<span class="string">"构造方法被执行"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    public static SingletonDemo <span class="function"><span class="title">getInstance</span></span>()&#123;</span><br><span class="line">        <span class="keyword">if</span> (singletonDemo == null)&#123; // 第一次check</span><br><span class="line">            synchronized (SingletonDemo.class)&#123;</span><br><span class="line">                <span class="keyword">if</span> (singletonDemo == null) // 第二次check</span><br><span class="line">                    singletonDemo = new SingletonDemo();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">return</span> singletonDemo;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <p> <strong>总结：</strong><br> <strong>1、volatile特性：</strong></p>
 <p>  可见性<br>  不保证原子性<br>  禁止指令重排<br> <strong>2、volatile的应用：</strong><br>  最经典的就是单例模式。</p>
+<p>  原文地址：<a href="https://www.jianshu.com/p/b05e4da39de9" target="_blank" rel="noopener">https://www.jianshu.com/p/b05e4da39de9</a></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2020/02/10/volatile详解/" data-id="ck6fy7qng000ajwss683shigf" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2020/02/10/volatile详解/" data-id="ck6fyeisj000b7wss7m6i3xzt" class="article-share-link">Share</a>
       
       
     </footer>
