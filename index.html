@@ -62,6 +62,72 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-volatile详解" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/my-blogs/2020/02/10/volatile详解/" class="article-date">
+  <time datetime="2020-02-10T04:08:44.000Z" itemprop="datePublished">2020-02-10</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/my-blogs/2020/02/10/volatile详解/">volatile详解</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><strong>一、volatile简介</strong><br>在单线程环境中，我们几乎用不到这个关键词，但是多线程环境中，这个关键词随处可见。总的来说，volatile有以下三个特性：</p>
+<p>保证可见性；<br>不保证原子性；<br>禁止指令重排。<br>下面就来详细的说说这三个特性。<br><strong>二、保证可见性</strong><br><strong>1、什么是可见性？</strong><br>在说volatile保证可见性之前，先来说说什么叫可见性。谈到可见性，又不得不说JMM(java memory model)内存模型。JMM内存模型是逻辑上的划分，及并不是真实存在。Java线程之间的通信就由JMM控制。</p>
+<p>我们定义的共享变量，是存储在主内存中的，也就是计算机的内存条中。线程A去操作共享变量的时候，并不能直接操作主内存中的值，而是将主内存中的值拷贝回自己的工作内存中，在工作内存中做修改。修改好后，在将值刷回到主内存中。</p>
+<p>假设现在new 一个 student , age为 18，这个18是存储在主内存中的。现在两个线程先将18拷贝回自己的工作内存中。这时，A线程将18改为了20，刷回到主内存中。也就是说，现在主内存中的值变为了20。可是，B线程并不知道现在主内存中的值变了，因为A线程所做的操作对B是不可见的。我们需要一种机制，即一旦主内存中的值发生改变，就及时地通知所有的线程，保证他们对这个变化可见。这就是可见性。我们通常用happen - before(先行发生原则)，来阐述操作之间内存的可见性。也就是前一个的操作结果对后一个操作可见，那么这两个操作就存在 happen - before 规则。</p>
+<p><strong>2、为什么volatile能保证可见性？</strong><br>先来说一说内存屏障(memory barrier)，这是一条CPU指令，可以影响数据的可见性。当变量用volatile修饰时，将会在写操作的后面加一条屏障指令，在读操作的前面加一条屏障指令。这样的话，一旦你写入完成，可以保证其他线程读到最新值，也就保证了可见性。</p>
+<p><strong>3、验证volatile保证可见性。</strong><br>验证volatile可见性和不保证原子性的代码：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">// 验证可见性</span><br><span class="line">class MyData &#123;</span><br><span class="line">    //int number = 0; // 没加volatile关键字</span><br><span class="line">    volatile int number = 0;</span><br><span class="line">    int <span class="function"><span class="title">changeNumber</span></span>() &#123;</span><br><span class="line">        <span class="built_in">return</span> this.number = 60;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public class VolatileTest &#123;</span><br><span class="line">    // 验证可见性</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        MyData myData = new MyData();</span><br><span class="line">        new Thread(<span class="string">"AAA"</span>) &#123;</span><br><span class="line">            public void <span class="function"><span class="title">run</span></span>() &#123;</span><br><span class="line">                try &#123;</span><br><span class="line">                    Thread.sleep(3000);</span><br><span class="line">                    // 睡3秒后调用changeNumber方法将number改为60</span><br><span class="line">                    System.err.println(Thread.currentThread().getName() </span><br><span class="line">                                        +  <span class="string">" update number to "</span> + myData.changeNumber());</span><br><span class="line">                &#125; catch (InterruptedException e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;;</span><br><span class="line">        &#125;.start();</span><br><span class="line">        // 主线程</span><br><span class="line">        <span class="keyword">while</span> (myData.number == 0) &#123;</span><br><span class="line">        &#125;</span><br><span class="line">        // 如果主线程读取到的一直都是最开始的0，</span><br><span class="line">        //将造成死循环，这句话将无法输出</span><br><span class="line">        System.err.println(Thread.currentThread().getName() </span><br><span class="line">                          + <span class="string">" get number value is "</span> + myData.number);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面这段代码很简单，定义了一个MyData类，初始一个number，值为0。然后在main方法中创建另一个线程，将其值改为60。但是，这个线程对number所作的操作对main线程是不可见的，所以main线程以为number还是0，因此，将会造成死循环。如果number加了volatile修饰，main线程就可以获取到主内存中的最新值，就不会死循环。这就验证了volatile可以保证可见性。</p>
+<p><strong>三、不保证原子性</strong><br><strong>1、什么叫原子性？</strong><br>所谓原子性，就是说一个操作不可被分割或加塞，要么全部执行，要么全不执行。</p>
+<p><strong>2、volatile不保证原子性解析</strong><br>java程序在运行时，JVM将java文件编译成了class文件。我们使用javap命令对class文件进行反汇编，就可以查看到java编译器生成的字节码。最常见的 i++ 问题，其实 反汇编后是分三步进行的。</p>
+<p>第一步：将i的初始值装载进工作内存；<br>第二步：在自己的工资内存中进行自增操作；<br>第三步：将自己工作内存的值刷回到主内存。<br>我们知道线程的执行具有随机性，假设现在i的初始值为0，有A和B两个线程对其进行++操作。首先两个线程将0拷贝到自己工作内存，当线程A在自己工作内存中进行了自增变成了1，还没来得及把1刷回到主内存，这是B线程抢到CPU执行权了。B将自己工作内存中的0进行自增，也变成了1。然后线程A将1刷回主内存，主内存此时变成了1，然后B也将1刷回主内存，主内存中的值还是1。本来A和B都对i进行了一次自增，此时主内存中的值应该是2，而结果是1，出现了写丢失的情况。这是因为i++本应该是一个原子操作，但是却被加塞了其他操作。所以说volatile不保证原子性。</p>
+<p><strong>3、volatile不保证原子性验证</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">// 验证volatile不保证原子性</span><br><span class="line">   void  <span class="function"><span class="title">addPlusPlus</span></span>() &#123;</span><br><span class="line">       this.number++;</span><br><span class="line">   &#125;</span><br><span class="line">   // 验证volatile不保证原子性</span><br><span class="line">   public static void main(String[] args) &#123;</span><br><span class="line">       MyData mydata2 = new MyData();</span><br><span class="line">       <span class="keyword">for</span>(int i = 0; i &lt; 20; i ++ ) &#123; // 创建20个线程</span><br><span class="line">           new Thread(<span class="string">"线程"</span> + i) &#123;</span><br><span class="line">               public void <span class="function"><span class="title">run</span></span>() &#123;</span><br><span class="line">                   try &#123;</span><br><span class="line">                       <span class="keyword">for</span>(int j = 0; j &lt; 1000; j++) &#123;</span><br><span class="line">                           mydata2.addPlusPlus();// 每个线程执行1000次number++</span><br><span class="line">                       &#125;</span><br><span class="line">                   &#125; catch (Exception e) &#123;</span><br><span class="line">                       e.printStackTrace();</span><br><span class="line">                   &#125;</span><br><span class="line">               &#125;;</span><br><span class="line">           &#125;.start();</span><br><span class="line">       &#125;</span><br><span class="line">       // 保证上面的线程执行完main线程再输出结果。 大于2，因为默认有main线程和gc线程</span><br><span class="line">       <span class="keyword">while</span>(Thread.activeCount() &gt; 2) &#123;</span><br><span class="line">           Thread.yield();</span><br><span class="line">       &#125;</span><br><span class="line">       System.err.println(Thread.currentThread().getName() + <span class="string">" obtain the number is "</span> + mydata2.number);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<p>同样是上面的MyData类，有一个volatile修饰的number变量初始值为0。现在有20个线程，每个线程对其执行1000次++操作。理论上执行完后，main线程输出的结果是20000，但是运行之后会发现，每次的运行结果都会小于20000，这就是因为出现了写丢失的情况。<br>解决办法：</p>
+<p>第一种：可以在addPlusPlus方法中加synchronized；<br>第二种：可以使用原子包装类AtomicInteger。<br>第一种办法不太好，因为synchronized太重量级了，整个操作都加锁了。第二种办法更好。但是为什么AtomicInteger就可以保证原子性呢？因为它使用了CAS算法。什么是CAS？后续我再专门写一篇介绍CAS的文章。</p>
+<p><strong>三、禁止指令重排</strong><br><strong>1、什么叫指令重排？</strong><br>上面说了，使用javap命令可以对class文件进行反汇编，查看到程序底层到底是如何执行的。像 i++ 这样一个简单的操作，底层就分三步执行。在多线程情况下，计算机为了提高执行效率，就会对这些步骤进行重排序，这就叫指令重排。比如现有如下代码：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">int x = 1;</span><br><span class="line">int y = 2;</span><br><span class="line">x = x + 3;</span><br><span class="line">y = x - 4;</span><br></pre></td></tr></table></figure>
+<p>这四条语句，正常的执行顺序是从上往下1234这样执行，x的结果应该是4，y的结果应该是0。但是在多线程环境中，编译器指令重排后，执行顺序可能就变成了1243，这样得出的x就是4，y就是-3，这结果显然就不正确了。不过编译器在重排的时候也会考虑数据的依赖性，比如执行顺序不可能为2413，因为第4条语句的执行是依赖x的。使用volatile修饰，就可以禁止指令重排。</p>
+<p><strong>四、你在哪些地方使用过volatile？</strong></p>
+<p>最经典的就是单例模式。</p>
+<p>最简版单例模式：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">public class SingletonDemo &#123;</span><br><span class="line">    private static SingletonDemo  singletonDemo = null;</span><br><span class="line">    private <span class="function"><span class="title">SingletonDemo</span></span>()&#123;</span><br><span class="line">        System.err.println(<span class="string">"构造方法被执行"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    public static SingletonDemo <span class="function"><span class="title">getInstance</span></span>()&#123;</span><br><span class="line">        <span class="keyword">if</span> (singletonDemo == null)&#123;</span><br><span class="line">            singletonDemo = new SingletonDemo();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">return</span> singletonDemo;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这是我们最开始学的时候写的单例模式。看似很完美。其实多线程环境中就会出问题。测试一下：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">public static void main(String[] args)&#123;</span><br><span class="line">        <span class="keyword">for</span> (int i = 0; i &lt;= 10; i++)&#123;</span><br><span class="line">           new Thread(() -&gt; SingletonDemo.getInstance()).start();</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>10个线程去执行这个单例，看结果：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">构造方法被执行</span><br><span class="line">构造方法被执行</span><br><span class="line"></span><br><span class="line">Process finished with <span class="built_in">exit</span> code 0</span><br></pre></td></tr></table></figure></p>
+<p>构造方法被执行这句话打印了两次，说明创建了两次对象。所以在多线程环境中这个单例模式是有问题的。可以在getInstance方法上加synchronized，但是，这样就把一整个方法都锁了，这样不太好。下面介绍另一种方式。</p>
+<p><strong>DCL版单例模式：</strong><br>DCL，是double check lock 的缩写，中文名叫双端检索机制。所谓双端检索，就是在加锁前和加锁后都用进行一次判断。代码如下：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">public class SingletonDemo &#123;</span><br><span class="line">    private static SingletonDemo  singletonDemo = null;</span><br><span class="line">    private <span class="function"><span class="title">SingletonDemo</span></span>()&#123;</span><br><span class="line">        System.err.println(<span class="string">"构造方法被执行"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    public static SingletonDemo <span class="function"><span class="title">getInstance</span></span>()&#123;</span><br><span class="line">        <span class="keyword">if</span> (singletonDemo == null)&#123; // 第一次check</span><br><span class="line">            synchronized (SingletonDemo.class)&#123;</span><br><span class="line">                <span class="keyword">if</span> (singletonDemo == null) // 第二次check</span><br><span class="line">                    singletonDemo = new SingletonDemo();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">return</span> singletonDemo;</span><br><span class="line">    &#125;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure></p>
+<p> 用synchronized只锁住创建实例那部分代码，而不是整个方法。在加锁前和加锁后都进行判断，这就叫双端检索机制。经测试，这样确实只创建了一个对象。但是，这也并非绝对安全。new 一个对象也是分三步的：</p>
+<p> 1.分配对象内存空间；(这个房间有人订了)<br> 2.初始化对象；(打扫好房间)<br> 3.将对象指向分配的内存地址，此时这个对象不为null。(订房间的人入住)<br> 步骤二和步骤三不存在数据依赖，因此编译器优化时允许这两句颠倒顺序。当指令重拍后，多线程去访问也会出问题。所以便有了如下的最终版单例模式。</p>
+<p> <strong>最终版单例模式：</strong><br> 既然说到DCL版可能会出现指令重排的现象，所以最终版就是加上volatile。<br> <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">public class SingletonDemo &#123;</span><br><span class="line">    private static volatile SingletonDemo  singletonDemo = null;</span><br><span class="line">    private <span class="function"><span class="title">SingletonDemo</span></span>()&#123;</span><br><span class="line">        System.err.println(<span class="string">"构造方法被执行"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    public static SingletonDemo <span class="function"><span class="title">getInstance</span></span>()&#123;</span><br><span class="line">        <span class="keyword">if</span> (singletonDemo == null)&#123; // 第一次check</span><br><span class="line">            synchronized (SingletonDemo.class)&#123;</span><br><span class="line">                <span class="keyword">if</span> (singletonDemo == null) // 第二次check</span><br><span class="line">                    singletonDemo = new SingletonDemo();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">return</span> singletonDemo;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p> <strong>总结：</strong><br> <strong>1、volatile特性：</strong></p>
+<p>  可见性<br>  不保证原子性<br>  禁止指令重排<br> <strong>2、volatile的应用：</strong><br>  最经典的就是单例模式。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://zzy896.github.io/my-blogs/2020/02/10/volatile详解/" data-id="ck6fy7qng000ajwss683shigf" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-idea配置查看代码汇编指令插件" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/my-blogs/2020/02/05/idea配置查看代码汇编指令插件/" class="article-date">
@@ -93,7 +159,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2020/02/05/idea配置查看代码汇编指令插件/" data-id="ck69gvoyt0003ogssd0elxlhg" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2020/02/05/idea配置查看代码汇编指令插件/" data-id="ck6fy7qmt0004jwssr8ze1108" class="article-share-link">Share</a>
       
       
     </footer>
@@ -180,7 +246,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2020/02/03/分布式锁的几种实现方式/" data-id="ck69gvozw000aogssu261dg54" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2020/02/03/分布式锁的几种实现方式/" data-id="ck6fy7qnm000cjwssbuwfbnm2" class="article-share-link">Share</a>
       
       
     </footer>
@@ -228,7 +294,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2020/01/01/guava之Immutable集合操作/" data-id="ck69gvoyx0005ogsssm0047wv" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2020/01/01/guava之Immutable集合操作/" data-id="ck6fy7qmr0003jwsstakv0awf" class="article-share-link">Share</a>
       
       
     </footer>
@@ -276,7 +342,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2019/09/25/Lookup注解使用/" data-id="ck69gvoyb0000ogss77954m4n" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2019/09/25/Lookup注解使用/" data-id="ck6fy7qmn0001jwss4v80voh7" class="article-share-link">Share</a>
       
       
     </footer>
@@ -322,7 +388,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2019/09/02/事务/" data-id="ck69gvoyv0004ogssl8hl5xt2" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2019/09/02/事务/" data-id="ck6fy7qmv0005jwss42lbrkpl" class="article-share-link">Share</a>
       
       
     </footer>
@@ -369,7 +435,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2019/09/02/实用SQL语句/" data-id="ck69gvoz20007ogssj2qcs6bb" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2019/09/02/实用SQL语句/" data-id="ck6fy7qmz0008jwss1frh3bjy" class="article-share-link">Share</a>
       
       
     </footer>
@@ -426,7 +492,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2019/08/27/MySql分组查询知识点/" data-id="ck69gvozu0009ogsslo3b4rjt" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2019/08/27/MySql分组查询知识点/" data-id="ck6fy7qne0009jwss2qo3j21o" class="article-share-link">Share</a>
       
       
     </footer>
@@ -464,7 +530,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2019/07/08/如何在Maven项目模块A引用子模块B的war项目的类文件/" data-id="ck69gvoz50008ogssk8vcw5jb" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2019/07/08/如何在Maven项目模块A引用子模块B的war项目的类文件/" data-id="ck6fy7qmy0007jwsstk1r4ugj" class="article-share-link">Share</a>
       
       
     </footer>
@@ -528,53 +594,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2019/07/03/到底什么是重入锁-一次搞清楚/" data-id="ck69gvoyz0006ogsscpyd57gw" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-Synchronized的几种用法" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/my-blogs/2019/07/03/Synchronized的几种用法/" class="article-date">
-  <time datetime="2019-07-03T02:10:36.000Z" itemprop="datePublished">2019-07-03</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/my-blogs/2019/07/03/Synchronized的几种用法/">Synchronized的几种用法</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>我们都知道 Synchronized 是线程安全同步用的，大部分程序可能只会用到同步方法上面。其实 Synchronized 可以用到更多的场合，以下列举了以下几个用法。</p>
-<p><strong>1、同步普通方法</strong><br>这个也是我们用得最多的，只要涉及线程安全，上来就给方法来个同步锁。这种方法使用虽然最简单，但是只能作用在单例上面，如果不是单例，同步方法锁将失效。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * 用在普通方法</span><br><span class="line"> */</span><br><span class="line">private synchronized void <span class="function"><span class="title">synchronizedMethod</span></span>() &#123;</span><br><span class="line">    System.out.println(<span class="string">"synchronizedMethod"</span>);</span><br><span class="line">    try &#123;</span><br><span class="line">        Thread.sleep(2000);</span><br><span class="line">    &#125; catch (InterruptedException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>此时，同一个实例只有一个线程能获取锁进入这个方法。</p>
-<p><strong>2、同步静态方法</strong><br>同步静态方法，不管你有多少个类实例，同时只有一个线程能获取锁进入这个方法。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * 用在静态方法</span><br><span class="line"> */</span><br><span class="line">private synchronized static void <span class="function"><span class="title">synchronizedStaticMethod</span></span>() &#123;</span><br><span class="line">    System.out.println(<span class="string">"synchronizedStaticMethod"</span>);</span><br><span class="line">    try &#123;</span><br><span class="line">        Thread.sleep(2000);</span><br><span class="line">    &#125; catch (InterruptedException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>同步静态方法是类级别的锁，一旦任何一个线程进入这个方法，其他所有线程将无法访问这个类的任何同步类锁的方法。<br><strong>3、同步类</strong><br>下面提供了两种同步类的方法，锁住效果和同步静态方法一样，都是类级别的锁，同时只有一个线程能访问带有同步类锁的方法。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * 用在类</span><br><span class="line"> */</span><br><span class="line">private void <span class="function"><span class="title">synchronizedClass</span></span>() &#123;</span><br><span class="line">    synchronized (TestSynchronized.class) &#123;</span><br><span class="line">        System.out.println(<span class="string">"synchronizedClass"</span>);</span><br><span class="line">        try &#123;</span><br><span class="line">            Thread.sleep(2000);</span><br><span class="line">        &#125; catch (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * 用在类</span><br><span class="line"> */</span><br><span class="line">private void <span class="function"><span class="title">synchronizedGetClass</span></span>() &#123;</span><br><span class="line">    synchronized (this.getClass()) &#123;</span><br><span class="line">        System.out.println(<span class="string">"synchronizedGetClass"</span>);</span><br><span class="line">        try &#123;</span><br><span class="line">            Thread.sleep(2000);</span><br><span class="line">        &#125; catch (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>这里的两种用法是同步块的用法，这里表示只有获取到这个类锁才能进入这个代码块。</p>
-<p><strong>4、同步this实例</strong><br>这也是同步块的用法，表示锁住整个当前对象实例，只有获取到这个实例的锁才能进入这个方法。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * 用在this</span><br><span class="line"> */</span><br><span class="line">private void <span class="function"><span class="title">synchronizedThis</span></span>() &#123;</span><br><span class="line">    synchronized (this) &#123;</span><br><span class="line">        System.out.println(<span class="string">"synchronizedThis"</span>);</span><br><span class="line">        try &#123;</span><br><span class="line">            Thread.sleep(2000);</span><br><span class="line">        &#125; catch (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>用法和同步普通方法锁一样，都是锁住整个当前实例。<br><strong>5、同步对象实例</strong><br>这也是同步块的用法，和上面的锁住当前实例一样，这里表示锁住整个 LOCK 对象实例，只有获取到这个 LOCK 实例的锁才能进入这个方法。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * 用在对象</span><br><span class="line"> */</span><br><span class="line">private void <span class="function"><span class="title">synchronizedInstance</span></span>() &#123;</span><br><span class="line">    synchronized (LOCK) &#123;</span><br><span class="line">        System.out.println(<span class="string">"synchronizedInstance"</span>);</span><br><span class="line">        try &#123;</span><br><span class="line">            Thread.sleep(2000);</span><br><span class="line">        &#125; catch (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>另外，类锁与实例锁不相互阻塞，但相同的类锁，相同的当前实例锁，相同的对象锁会相互阻塞。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2019/07/03/Synchronized的几种用法/" data-id="ck69gvoyr0002ogssr2aq6cov" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2019/07/03/到底什么是重入锁-一次搞清楚/" data-id="ck6fy7qmw0006jwssfxsu12u6" class="article-share-link">Share</a>
       
       
     </footer>
@@ -620,6 +640,10 @@
       <ul>
         
           <li>
+            <a href="/my-blogs/2020/02/10/volatile详解/">volatile详解</a>
+          </li>
+        
+          <li>
             <a href="/my-blogs/2020/02/05/idea配置查看代码汇编指令插件/">idea配置查看代码汇编指令插件</a>
           </li>
         
@@ -633,10 +657,6 @@
         
           <li>
             <a href="/my-blogs/2019/09/25/Lookup注解使用/">spring方法注入@Lookup注解使用</a>
-          </li>
-        
-          <li>
-            <a href="/my-blogs/2019/09/02/事务/">事务</a>
           </li>
         
       </ul>
