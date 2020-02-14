@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+
+  
+  <title>简述Spring的ApplicationEvent使用 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="spring 事件为bean 与 bean之间传递消息。一个bean处理完了希望其余一个接着处理.这时我们就需要其余的一个bean监听当前bean所发送的事件.spring事件使用步骤如下: 1.先自定义事件：你的事件需要继承 ApplicationEvent 2.定义事件监听器: 需要实现 ApplicationListener 3.使用容器对事件进行发布 首先定义一个事件12345678910">
+<meta property="og:type" content="article">
+<meta property="og:title" content="简述Spring的ApplicationEvent使用">
+<meta property="og:url" content="https://zzy896.github.io/my-blogs/2020/02/14/简述Spring的ApplicationEvent使用/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="spring 事件为bean 与 bean之间传递消息。一个bean处理完了希望其余一个接着处理.这时我们就需要其余的一个bean监听当前bean所发送的事件.spring事件使用步骤如下: 1.先自定义事件：你的事件需要继承 ApplicationEvent 2.定义事件监听器: 需要实现 ApplicationListener 3.使用容器对事件进行发布 首先定义一个事件12345678910">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2020-02-14T05:54:32.070Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="简述Spring的ApplicationEvent使用">
+<meta name="twitter:description" content="spring 事件为bean 与 bean之间传递消息。一个bean处理完了希望其余一个接着处理.这时我们就需要其余的一个bean监听当前bean所发送的事件.spring事件使用步骤如下: 1.先自定义事件：你的事件需要继承 ApplicationEvent 2.定义事件监听器: 需要实现 ApplicationListener 3.使用容器对事件进行发布 首先定义一个事件12345678910">
+  
+    <link rel="alternate" href="/my-blogs/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/my-blogs/css/style.css">
+</head>
+</html>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/my-blogs/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/my-blogs/">Home</a>
+        
+          <a class="main-nav-link" href="/my-blogs/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/my-blogs/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://zzy896.github.io/my-blogs"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-简述Spring的ApplicationEvent使用" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/my-blogs/2020/02/14/简述Spring的ApplicationEvent使用/" class="article-date">
+  <time datetime="2020-02-14T05:46:33.000Z" itemprop="datePublished">2020-02-14</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      简述Spring的ApplicationEvent使用
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>spring 事件为bean 与 bean之间传递消息。一个bean处理完了希望其余一个接着处理.这时我们就需要其余的一个bean监听当前bean所发送的事件.<br>spring事件使用步骤如下:</p>
+<p>1.先自定义事件：你的事件需要继承 ApplicationEvent</p>
+<p>2.定义事件监听器: 需要实现 ApplicationListener</p>
+<p>3.使用容器对事件进行发布</p>
+<p>首先定义一个事件<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">public class TestEvent extends ApplicationEvent &#123;</span><br><span class="line"></span><br><span class="line">    private String name;</span><br><span class="line"></span><br><span class="line">    private String msg;</span><br><span class="line"></span><br><span class="line">    public TestEvent(Object <span class="built_in">source</span>)&#123;</span><br><span class="line">        super(<span class="built_in">source</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public TestEvent(Object <span class="built_in">source</span>, String name, String msg) &#123;</span><br><span class="line">        super(<span class="built_in">source</span>);</span><br><span class="line">        this.name = name;</span><br><span class="line">        this.msg = msg;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public String <span class="function"><span class="title">getName</span></span>() &#123;</span><br><span class="line">        <span class="built_in">return</span> name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void setName(String name) &#123;</span><br><span class="line">        this.name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public String <span class="function"><span class="title">getMsg</span></span>() &#123;</span><br><span class="line">        <span class="built_in">return</span> msg;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void setMsg(String msg) &#123;</span><br><span class="line">        this.msg = msg;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>其次定义事件监听<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">@Component</span><br><span class="line">public class TestEventListener implements ApplicationListener&lt;TestEvent&gt; &#123;</span><br><span class="line"></span><br><span class="line">    @Async</span><br><span class="line">    @Override</span><br><span class="line">    public void onApplicationEvent(TestEvent testEvent) &#123;</span><br><span class="line">        System.out.println(<span class="string">"姓名："</span>+testEvent.getName()+<span class="string">"得到消息："</span>+testEvent.getMsg());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>使用容器发布事件<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">@Component</span><br><span class="line">public class TestEventPublisher &#123;</span><br><span class="line"></span><br><span class="line">    @Autowired</span><br><span class="line">    private ApplicationContext applicationContext;</span><br><span class="line"></span><br><span class="line">    public void pushlish(String name, String msg)&#123;</span><br><span class="line">        applicationContext.publishEvent(new TestEvent(this, name,msg));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>测试事件是否能够生效<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">@Configuration</span><br><span class="line">@ComponentScan(<span class="string">"cn.*.event"</span>)</span><br><span class="line">public class EventConfig &#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">public class TestMain &#123;</span><br><span class="line"></span><br><span class="line">    private static AnnotationConfigApplicationContext context;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        start();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void <span class="function"><span class="title">start</span></span>() &#123;</span><br><span class="line">        <span class="keyword">if</span> (context == null) &#123;</span><br><span class="line">             context=new AnnotationConfigApplicationContext(EventConfig.class);</span><br><span class="line">        &#125;</span><br><span class="line">        context.getBean(TestEventPublisher.class).pushlish(<span class="string">"hangyu"</span>,<span class="string">"申请退款！"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://zzy896.github.io/my-blogs/2020/02/14/简述Spring的ApplicationEvent使用/" data-id="ck6lrkiog000am4ssbo4cmg6t" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/my-blogs/2020/02/11/深入理解幂等性/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">深入理解幂等性</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2020/02/">February 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/09/">September 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/06/">June 2019</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/my-blogs/2020/02/14/简述Spring的ApplicationEvent使用/">简述Spring的ApplicationEvent使用</a>
+          </li>
+        
+          <li>
+            <a href="/my-blogs/2020/02/11/深入理解幂等性/">深入理解幂等性</a>
+          </li>
+        
+          <li>
+            <a href="/my-blogs/2020/02/10/深入理解CAS算法原理/">深入理解CAS算法原理</a>
+          </li>
+        
+          <li>
+            <a href="/my-blogs/2020/02/10/volatile详解/">volatile详解</a>
+          </li>
+        
+          <li>
+            <a href="/my-blogs/2020/02/05/idea配置查看代码汇编指令插件/">idea配置查看代码汇编指令插件</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2020 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/my-blogs/" class="mobile-nav-link">Home</a>
+  
+    <a href="/my-blogs/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/my-blogs/fancybox/jquery.fancybox.css">
+  <script src="/my-blogs/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/my-blogs/js/script.js"></script>
+
+
+
+  </div>
+</body>
+</html>
