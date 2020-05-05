@@ -62,6 +62,54 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-Lookup注解使用" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/my-blogs/2019/09/25/Lookup注解使用/" class="article-date">
+  <time datetime="2019-09-25T07:24:58.000Z" itemprop="datePublished">2019-09-25</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/my-blogs/2019/09/25/Lookup注解使用/">spring方法注入@Lookup注解使用</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>##情景分析<br>在Spring的诸多应用场景中bean都是单例形式，当一个单利bean需要和一个非单利bean组合使用或者一个非单利bean和另一个非单利bean组合使用时，我们通常都是将依赖以属性的方式放到bean中来引用，然后以@Autowired来标记需要注入的属性。但是这种方式在bean的生命周期不同时将会出现很明显的问题，假设单利bean A需要一个非单利bean B（原型），我们在A中注入bean B，每次调用bean A中的方法时都会用到bean B，我们知道Spring Ioc容器只在容器初始化时执行一次，也就是bean A中的依赖bean B只有一次注入的机会，但是实际上bean B我们需要的是每次调用方法时都获取一个新的对象（原型）所以问题明显就是：我们需要bean B是一个原型bean，而事实上bean B的依赖只注入了一次变成了事实上的单利bean。</p>
+<p>###代码说明<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">@Component</span><br><span class="line">@Scope(<span class="string">"prototype"</span>)</span><br><span class="line">public class PrototypeBean &#123;</span><br><span class="line">    private static final Logger logger= LoggerFactory.getLogger(PrototypeBean.class);</span><br><span class="line">    </span><br><span class="line">    public void <span class="function"><span class="title">say</span></span>() &#123;</span><br><span class="line">        logger.info(<span class="string">"say something..."</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">@Component</span><br><span class="line">public class SingletonBean &#123;</span><br><span class="line">    private static final Logger logger = LoggerFactory.getLogger(SingletonBean.class);</span><br><span class="line">    </span><br><span class="line">    @Autowired</span><br><span class="line">    private PrototypeBean bean;</span><br><span class="line">    </span><br><span class="line">    public void <span class="function"><span class="title">print</span></span>() &#123;</span><br><span class="line">        logger.info(<span class="string">"Bean SingletonBean's HashCode : &#123;&#125;"</span>,bean.hashCode());</span><br><span class="line">        bean.say();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">@SpringBootApplication</span><br><span class="line">public class SampleApplication &#123;</span><br><span class="line">    private static final Logger logger = LoggerFactory.getLogger(SampleApplication.class);</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        SpringApplication.run(SampleApplication.class, args);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Bean public CommandLineRunner <span class="built_in">test</span>(final SingletonBean bean) &#123;</span><br><span class="line">        <span class="built_in">return</span> (args)-&gt; &#123;</span><br><span class="line">            logger.info(<span class="string">"测试单例bean和原型bean的调用"</span>);</span><br><span class="line">            int i =0;</span><br><span class="line">            <span class="keyword">while</span>(i&lt;3) &#123;</span><br><span class="line">                i++;</span><br><span class="line">                bean.print();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>##结果<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">2019-09-25 15:04:29,721 INFO :-- [main .. ] o.s.SampleApplication 测试单例bean和原型bean的调用 </span><br><span class="line">2019-09-25 15:04:29,723 INFO :-- [main .. ] o.s.a.SingletonBean Bean SingletonBean<span class="string">'s HashCode : 1713129148 </span></span><br><span class="line"><span class="string">2019-09-25 15:04:29,723 INFO :-- [main .. ] o.s.a.PrototypeBean say something... </span></span><br><span class="line"><span class="string">2019-09-25 15:04:29,723 INFO :-- [main .. ] o.s.a.SingletonBean Bean SingletonBean'</span>s HashCode : 1713129148 </span><br><span class="line">2019-09-25 15:04:29,724 INFO :-- [main .. ] o.s.a.PrototypeBean say something... </span><br><span class="line">2019-09-25 15:04:29,724 INFO :-- [main .. ] o.s.a.SingletonBean Bean SingletonBean<span class="string">'s HashCode : 1713129148 </span></span><br><span class="line"><span class="string">2019-09-25 15:04:29,724 INFO :-- [main .. ] o.s.a.PrototypeBean say something...</span></span><br></pre></td></tr></table></figure></p>
+<p>我们看到每次输出PrototypeBean的HashCode都是一样的，证明我们实际上并没有达到使用原型bean的目的。</p>
+<p>###解决方案<br>1、在bean A中引入ApplicationContext每次调用方法时用上下文的getBean(name,class)方法去重新获取bean B的实例。<br>2、使用@Lookup注解。<br>这两种解决方案都能解决我们遇到的问题，但是第二种相对而言更简单。以下给出两种解决方案的代码示例。</p>
+<p>###通过应用上下文ApplicationContext获取获取<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">@Component</span><br><span class="line">public class SingletonBean &#123;</span><br><span class="line">    private static final Logger logger = LoggerFactory.getLogger(SingletonBean.class);</span><br><span class="line">    </span><br><span class="line">    @Autowired</span><br><span class="line">    private ApplicationContext context;</span><br><span class="line">    </span><br><span class="line">    public void <span class="function"><span class="title">print</span></span>() &#123;</span><br><span class="line">        PrototypeBean bean = getFromApplicationContext();</span><br><span class="line">        logger.info(<span class="string">"Bean SingletonBean's HashCode : &#123;&#125;"</span>,bean.hashCode());</span><br><span class="line">        bean.say();</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    /**</span><br><span class="line">     * 每次都从ApplicatonContext中获取新的bean引用</span><br><span class="line">     * @<span class="built_in">return</span> PrototypeBean instance</span><br><span class="line">     */</span><br><span class="line">    PrototypeBean <span class="function"><span class="title">getFromApplicationContext</span></span>() &#123;</span><br><span class="line">        <span class="built_in">return</span> this.context.getBean(<span class="string">"prototypeBean"</span>,PrototypeBean.class);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>###结果<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">2019-09-25 15:10:01,485 INFO :-- [main .. ] o.s.SampleApplication 测试单例bean和原型bean的调用 </span><br><span class="line">2019-09-25 15:10:01,487 INFO :-- [main .. ] o.s.a.SingletonBean Bean SingletonBean<span class="string">'s HashCode : 376601041 </span></span><br><span class="line"><span class="string">2019-09-25 15:10:01,487 INFO :-- [main .. ] o.s.a.PrototypeBean say something... </span></span><br><span class="line"><span class="string">2019-09-25 15:10:01,487 INFO :-- [main .. ] o.s.a.SingletonBean Bean SingletonBean'</span>s HashCode : 2056499811 </span><br><span class="line">2019-09-25 15:10:01,487 INFO :-- [main .. ] o.s.a.PrototypeBean say something... </span><br><span class="line">2019-09-25 15:10:01,488 INFO :-- [main .. ] o.s.a.SingletonBean Bean SingletonBean<span class="string">'s HashCode : 890733699 </span></span><br><span class="line"><span class="string">2019-09-25 15:10:01,488 INFO :-- [main .. ] o.s.a.PrototypeBean say something...</span></span><br></pre></td></tr></table></figure></p>
+<p>我们看到每次我们调用print()方法时都会重新从应用上下文获取新的引用，达到了使用原型的目的。</p>
+<p>###通过@Lookup注解实现方法注入<br>使用方法注入的方法需要满足以下语法要求</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;public|protected&gt; [abstract] &lt;<span class="built_in">return</span>-type&gt; theMethodName(no-arguments);</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">@Component</span><br><span class="line">public abstract class SingletonBean &#123;</span><br><span class="line">    private static final Logger logger = LoggerFactory.getLogger(SingletonBean.class);</span><br><span class="line">    </span><br><span class="line">    public void <span class="function"><span class="title">print</span></span>() &#123;</span><br><span class="line">        PrototypeBean bean = methodInject();</span><br><span class="line">        logger.info(<span class="string">"Bean SingletonBean's HashCode : &#123;&#125;"</span>,bean.hashCode());</span><br><span class="line">        bean.say();</span><br><span class="line">    &#125;</span><br><span class="line">    // 也可以写成 @Lookup(<span class="string">"prototypeBean"</span>) 来指定需要注入的bean</span><br><span class="line">    @Lookup</span><br><span class="line">    protected abstract PrototypeBean methodInject();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>结果</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">2019-09-25 15:18:50,105 INFO :-- [main .. ] o.s.SampleApplication 测试单例bean和原型bean的调用 </span><br><span class="line">2019-09-25 15:18:50,108 INFO :-- [main .. ] o.s.a.SingletonBean Bean SingletonBean<span class="string">'s HashCode : 1349373781 </span></span><br><span class="line"><span class="string">2019-09-25 15:18:50,108 INFO :-- [main .. ] o.s.a.PrototypeBean say something... </span></span><br><span class="line"><span class="string">2019-09-25 15:18:50,108 INFO :-- [main .. ] o.s.a.SingletonBean Bean SingletonBean'</span>s HashCode : 1046820071 </span><br><span class="line">2019-09-25 15:18:50,109 INFO :-- [main .. ] o.s.a.PrototypeBean say something... </span><br><span class="line">2019-09-25 15:18:50,109 INFO :-- [main .. ] o.s.a.SingletonBean Bean SingletonBean<span class="string">'s HashCode : 1722645488 </span></span><br><span class="line"><span class="string">2019-09-25 15:18:50,110 INFO :-- [main .. ] o.s.a.PrototypeBean say something...</span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://zzy896.github.io/my-blogs/2019/09/25/Lookup注解使用/" data-id="ck9tay0450001toss5csew6sm" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-事务" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/my-blogs/2019/09/02/事务/" class="article-date">
@@ -98,7 +146,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2019/09/02/事务/" data-id="ck6w6voeq000590ssybp1dtsr" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2019/09/02/事务/" data-id="ck9tay04q0005tossjgmuduuh" class="article-share-link">Share</a>
       
       
     </footer>
@@ -145,7 +193,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2019/09/02/实用SQL语句/" data-id="ck6w6voey000990sspso4fwpy" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2019/09/02/实用SQL语句/" data-id="ck9tay051000atossbm2wjf7v" class="article-share-link">Share</a>
       
       
     </footer>
@@ -202,7 +250,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2019/08/27/MySql分组查询知识点/" data-id="ck6w6voff000d90ssvxrud391" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2019/08/27/MySql分组查询知识点/" data-id="ck9tay060000etoss0ld6x3nx" class="article-share-link">Share</a>
       
       
     </footer>
@@ -240,7 +288,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2019/07/08/如何在Maven项目模块A引用子模块B的war项目的类文件/" data-id="ck6w6voew000790sscbqvmr60" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2019/07/08/如何在Maven项目模块A引用子模块B的war项目的类文件/" data-id="ck9tay04z0009toss982s6ac2" class="article-share-link">Share</a>
       
       
     </footer>
@@ -304,7 +352,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2019/07/03/到底什么是重入锁-一次搞清楚/" data-id="ck6w6voex000890ssevpnm2b7" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2019/07/03/到底什么是重入锁-一次搞清楚/" data-id="ck9tay04x0008tossb3t34j93" class="article-share-link">Share</a>
       
       
     </footer>
@@ -350,7 +398,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2019/07/03/Synchronized的几种用法/" data-id="ck6w6voef000290ssllz671td" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2019/07/03/Synchronized的几种用法/" data-id="ck9tay04c0002tossdjod1mzn" class="article-share-link">Share</a>
       
       
     </footer>
@@ -421,7 +469,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2019/06/18/进程缓存之王/" data-id="ck6w6vog5000j90ssbn0llx2f" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2019/06/18/进程缓存之王/" data-id="ck9tay06u000ktosslgtomzdp" class="article-share-link">Share</a>
       
       
     </footer>
@@ -509,7 +557,7 @@ semaphore 同一个时刻只运行n个线程，限制同时工作的线程数目
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2019/06/15/最全的JAVA知识汇总/" data-id="ck6w6vog3000i90ssxzaoinwv" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2019/06/15/最全的JAVA知识汇总/" data-id="ck9tay06s000jtoss5zj84oes" class="article-share-link">Share</a>
       
       
     </footer>
@@ -603,55 +651,7 @@ semaphore 同一个时刻只运行n个线程，限制同时工作的线程数目
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2019/06/15/使用lombok编写优雅的Bean对象/" data-id="ck6w6vofj000g90ss9g3wvqwx" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-Logback日志跨线程追踪实践" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/my-blogs/2019/06/09/Logback日志跨线程追踪实践/" class="article-date">
-  <time datetime="2019-06-09T12:23:44.000Z" itemprop="datePublished">2019-06-09</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/my-blogs/2019/06/09/Logback日志跨线程追踪实践/">Logback日志跨线程追踪实践</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>###1. 自定义日志模板参数：Logback的Pattern模板<br>当一个请求过来,我们想要知道当前请求具体跑了那些流程该怎么做呢？ 噔噔噔噔..我们的男主Logback自定义Pattern<br>模板即将登场.</p>
-<p>在我们打印日志的时候,通常我们都会把一些重要的参数信息写到日志里面,方便我们后期从日志里面定位问题,其他的<br>内部系统调用我们的程序的时候，我们可以要求他们那边在header头里面增加trace-id这样的唯一标识，如果没有该参<br>数的话，我们自己手动生成一个唯一的标识，方便我们将整条请求链路构建起来.<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;property name=<span class="string">"CONSOLE_LOG_PATTERN"</span></span><br><span class="line"> value=<span class="string">"[%yellow(%date&#123;yyyy-MM-dd HH:mm:ss&#125;)] [%highlight(%-5level)] [%cyan(%traceId)] </span></span><br><span class="line"><span class="string"> [%magenta(%thread)] [%blue(%file:%line)] [%green(%logger)] : %.4000m%n"</span>/&gt;</span><br></pre></td></tr></table></figure></p>
-<p>上面这里是Logback的定义变量,重点关注[%cyan(%traceId)]这个参数(ps:其他的日志系统如log4j2都有类似的实现)<br>要实现让Logback识别我们自定义的标识符,我们需要继承两个方法ClassicConverter跟PatternLayout,具体实现如下:<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">public class PatternLogbackLayout extends PatternLayout &#123;</span><br><span class="line">  static &#123;</span><br><span class="line">    defaultConverterMap.put(<span class="string">"traceId"</span>, TraceIdPatternConverter.class.getName());</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public class TraceIdPatternConverter extends ClassicConverter &#123;</span><br><span class="line">	@Override</span><br><span class="line">	public String convert(ILoggingEvent iLoggingEvent) &#123;</span><br><span class="line">		String traceId = LogHandlerInterceptor.getTrack();</span><br><span class="line">		<span class="built_in">return</span> StringUtils.isEmpty(traceId) ? <span class="string">"traceId"</span> : traceId;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>通过spring的拦截器我们将请求的header头里面的参数赋值给traceId,然后配置logback.xml，让logback去识别我们定义的traceId<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;appender name=<span class="string">"stdout"</span> class=<span class="string">"ch.qos.logback.core.ConsoleAppender"</span>&gt;</span><br><span class="line">   &lt;encoder class=<span class="string">"ch.qos.logback.core.encoder.LayoutWrappingEncoder"</span>&gt;</span><br><span class="line">      &lt;layout class=<span class="string">"com.blacksearch.logback.PatternLogbackLayout"</span>&gt;</span><br><span class="line">      	&lt;pattern&gt;<span class="variable">$&#123;CONSOLE_LOG_PATTERN&#125;</span>&lt;/pattern&gt;</span><br><span class="line">      &lt;/layout&gt;</span><br><span class="line">   &lt;/encoder&gt;</span><br><span class="line">&lt;/appender&gt;</span><br></pre></td></tr></table></figure></p>
-<p>通过以上配置,我们已经可以在日志里面看到traceId了<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[2019-05-10 16:47:38] [INFO ] [538e2c0d-3800-4c86-b320-260bdd945c0c] [http-nio-8080-exec-6] [TestLogTrackController.java:15] [com.blacksearch.controller.TestLogTrackController] : 测试</span><br><span class="line">[2019-05-10 16:47:38] [DEBUG] [538e2c0d-3800-4c86-b320-260bdd945c0c] [http-nio-8080-exec-6] [AbstractMessageConverterMethodProcessor.java:298] [org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor] : Nothing to write: null body</span><br></pre></td></tr></table></figure></p>
-<p>这样子在服务器上面我们可以通过<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">grep <span class="string">'538e2c0d-3800-4c86-b320-260bdd945c0c'</span></span><br></pre></td></tr></table></figure></p>
-<p>查看到当前请求的所有日志~或者上ELK之后 直接搜索538e2c0d-3800-4c86-b320-260bdd945c0c 方便开心~</p>
-<p>###2. 当我们使用多线程的时候,我们发现,原先定义的标识居然消失了！！！<br>解决方案：自定义抽象类实现Runnable 首先我们先来复现问题. eg:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">@RequestMapping(<span class="string">"/asynLogTrack"</span>)</span><br><span class="line">public String <span class="function"><span class="title">asynLogTrack</span></span>()&#123;</span><br><span class="line">	logger.info(<span class="string">"ces--------"</span>);</span><br><span class="line">	new Thread(new <span class="function"><span class="title">Runnable</span></span>() &#123;</span><br><span class="line">		@Override</span><br><span class="line">		public void <span class="function"><span class="title">run</span></span>() &#123;</span><br><span class="line">			logger.info(<span class="string">"ces"</span>);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;).start();</span><br><span class="line">	<span class="built_in">return</span> null;</span><br><span class="line">&#125;</span><br><span class="line">[2019-05-10 16:55:18] [INFO ] [5b446567-97be-42f7-b6b0-205a6b431e87] [http-nio-8080-exec-2] [TestLogTrackController.java:21] [com.blacksearch.controller.TestLogTrackController] : ces--------</span><br><span class="line">[2019-05-10 16:55:18] [INFO ] [traceId] [Thread-10] [TestLogTrackController.java:25] [com.blacksearch.controller.TestLogTrackController] : ces</span><br><span class="line">[2019-05-10 16:55:18] [DEBUG] [5b446567-97be-42f7-b6b0-205a6b431e87] [http-nio-8080-exec-2] [AbstractMessageConverterMethodProcessor.java:298] [org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor] : Nothing to write: null body</span><br></pre></td></tr></table></figure>
-<p>我们看到打印 ces 的打印记录,我们发现，traceId居然丢失了!!! 原因在于,栈是线程私有,当我们新建线程的时候,新建的<br>线程跟原来的线程互相独立,也就是说logback无法在新建的线程上获取到值。既然如何,那么我们该如何让Logback在<br>新线程上获取到值呢？正如标题而言。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">public abstract class TrackRunnable implements Runnable &#123;</span><br><span class="line"></span><br><span class="line">	public abstract void trackRun();</span><br><span class="line"></span><br><span class="line">	private String track = LogHandlerInterceptor.getTrack();</span><br><span class="line"></span><br><span class="line">	@Override</span><br><span class="line">	public void <span class="function"><span class="title">run</span></span>() &#123;</span><br><span class="line">		try &#123;</span><br><span class="line">			LogHandlerInterceptor.setTrace(track);</span><br><span class="line">			trackRun();</span><br><span class="line">		&#125;finally &#123;</span><br><span class="line">			LogHandlerInterceptor.remove();</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>我们采用抽象类实现Runnable,然后在run()方法里面通过ThreadLocal去重新赋值。eg:<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">@RequestMapping(<span class="string">"/asynLogTrackHasTrace"</span>)</span><br><span class="line">public String <span class="function"><span class="title">asynLogTrackHasTrace</span></span>()&#123;</span><br><span class="line">	logger.info(<span class="string">"ces1------"</span>);</span><br><span class="line">	new Thread(new <span class="function"><span class="title">TrackRunnable</span></span>() &#123;</span><br><span class="line">		@Override</span><br><span class="line">		public void <span class="function"><span class="title">trackRun</span></span>() &#123;</span><br><span class="line">			try &#123;</span><br><span class="line">				Thread.sleep(4000);</span><br><span class="line">			&#125; catch (InterruptedException e) &#123;</span><br><span class="line">				e.printStackTrace();</span><br><span class="line">			&#125;</span><br><span class="line">			logger.info(<span class="string">"ces2-----------"</span>);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;).start();</span><br><span class="line">	<span class="built_in">return</span> null;</span><br><span class="line">&#125;</span><br><span class="line">[2019-05-10 17:07:20] [INFO ] [0a7f30d3-8e1d-49b4-9bca-4b72fd1c0ccd] [http-nio-8080-exec-5] [TestLogTrackController.java:33] [com.blacksearch.controller.TestLogTrackController] : ces1------</span><br><span class="line">[2019-05-10 17:07:20] [DEBUG] [0a7f30d3-8e1d-49b4-9bca-4b72fd1c0ccd] [http-nio-8080-exec-5] [AbstractMessageConverterMethodProcessor.java:298] [org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor] : Nothing to write: null body</span><br><span class="line">[2019-05-10 17:07:20] [DEBUG] [traceId] [http-nio-8080-exec-5] [FrameworkServlet.java:1130] [org.springframework.web.servlet.DispatcherServlet] : Completed 200 OK</span><br><span class="line">[2019-05-10 17:07:24] [INFO ] [0a7f30d3-8e1d-49b4-9bca-4b72fd1c0ccd] [Thread-11] [TestLogTrackController.java:42] [com.blacksearch.controller.TestLogTrackController] : ces2-----------</span><br></pre></td></tr></table></figure></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2019/06/09/Logback日志跨线程追踪实践/" data-id="ck6w6voec000190ssbdio8hlk" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2019/06/15/使用lombok编写优雅的Bean对象/" data-id="ck9tay066000htossdh0kk9lx" class="article-share-link">Share</a>
       
       
     </footer>
@@ -665,7 +665,7 @@ semaphore 同一个时刻只运行n个线程，限制同时工作的线程数目
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/my-blogs/">&laquo; Prev</a><a class="page-number" href="/my-blogs/">1</a><span class="page-number current">2</span>
+    <a class="extend prev" rel="prev" href="/my-blogs/">&laquo; Prev</a><a class="page-number" href="/my-blogs/">1</a><span class="page-number current">2</span><a class="page-number" href="/my-blogs/page/3/">3</a><a class="extend next" rel="next" href="/my-blogs/page/3/">Next &raquo;</a>
   </nav>
 
 </section>
@@ -684,7 +684,7 @@ semaphore 同一个时刻只运行n个线程，限制同时工作的线程数目
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2020/02/">February 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/09/">September 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/06/">June 2019</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2020/02/">February 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/09/">September 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/06/">June 2019</a></li></ul>
     </div>
   </div>
 
@@ -695,6 +695,10 @@ semaphore 同一个时刻只运行n个线程，限制同时工作的线程数目
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/my-blogs/2020/05/05/分库分表的基本思想/">分库分表的基本思想</a>
+          </li>
         
           <li>
             <a href="/my-blogs/2020/02/21/springboot单元测试技巧/">springboot单元测试技巧</a>
@@ -710,10 +714,6 @@ semaphore 同一个时刻只运行n个线程，限制同时工作的线程数目
         
           <li>
             <a href="/my-blogs/2020/02/11/深入理解幂等性/">深入理解幂等性</a>
-          </li>
-        
-          <li>
-            <a href="/my-blogs/2020/02/10/深入理解CAS算法原理/">深入理解CAS算法原理</a>
           </li>
         
       </ul>
