@@ -62,6 +62,48 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-单例模式-懒汉式" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/my-blogs/2020/08/13/单例模式-懒汉式/" class="article-date">
+  <time datetime="2020-08-13T13:01:11.000Z" itemprop="datePublished">2020-08-13</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/my-blogs/2020/08/13/单例模式-懒汉式/">单例模式-懒汉式</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><strong>饿汉式</strong><br><strong><em>饿汉式的代码很简单也不是我们的重点。</em></strong><br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">package singleton_k;</span><br><span class="line"></span><br><span class="line">public class Computer &#123;</span><br><span class="line"></span><br><span class="line">    private <span class="function"><span class="title">Computer</span></span>() &#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static Computer computer = new Computer();</span><br><span class="line"></span><br><span class="line">    public static Computer <span class="function"><span class="title">getInstance</span></span>() &#123;</span><br><span class="line">        <span class="built_in">return</span> computer;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><strong>懒汉式-同步锁</strong><br>这种synchronized关键字的做法是很最简单的，但是性能较差，对象的创建实际只有一次，剩下的其实都是获取，但是却要在获取时也要同步。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">package singleton_k;</span><br><span class="line"></span><br><span class="line">public class Computer2 &#123;</span><br><span class="line"></span><br><span class="line">    private <span class="function"><span class="title">Computer2</span></span>() &#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static Computer2 computer = null;</span><br><span class="line"></span><br><span class="line">    public static synchronized Computer2 <span class="function"><span class="title">getInstance</span></span>() &#123;</span><br><span class="line">        <span class="keyword">if</span> (computer == null) &#123;</span><br><span class="line">            computer = new Computer2();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">return</span> computer;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><strong>懒汉式-双检查锁</strong><br>将synchronized转移到方法中，假如有10条线程进入方法内，如果判断==null，也只能有一个线程进入同步代码块，进入代码块后再次判断是否==null第一个线程会将对象实例化。而后来的9条线程判断!=null就不会再次创建。第二次再来10条线程，则第一个if判断都不会通过，所以不会进入synchronized代码块也不会造成线程串行。大大的解决的性能问题。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">package singleton_k;</span><br><span class="line"></span><br><span class="line">public class Computer3 &#123;</span><br><span class="line"></span><br><span class="line">    private String name = <span class="string">"张三"</span>;</span><br><span class="line"></span><br><span class="line">    private <span class="function"><span class="title">Computer3</span></span>() &#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">   </span><br><span class="line">    private static  Computer3 computer = null;</span><br><span class="line"></span><br><span class="line">    public static Computer3 <span class="function"><span class="title">getInstance</span></span>() &#123;</span><br><span class="line">        //第二个线程判断对象不为null</span><br><span class="line">        <span class="keyword">if</span> (computer == null) &#123;</span><br><span class="line">            synchronized (Computer3.class) &#123;</span><br><span class="line">                <span class="keyword">if</span> (computer == null) &#123;</span><br><span class="line">                    computer = new Computer3();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">return</span> computer;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>但是这里还会有一点问题，如果在第一个线程new之后，但是没有初始化成员变量。第二个线程在第一次判断这时已经不是null了，它走到打印处，可能会没有值。所以使用volatile关键字。这个关键字的作用禁止CPU使用缓存，禁止指令重排序。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">package singleton_k;</span><br><span class="line"></span><br><span class="line">public class Computer3 &#123;</span><br><span class="line"></span><br><span class="line">    private String name = <span class="string">"张三"</span>;</span><br><span class="line"></span><br><span class="line">    private <span class="function"><span class="title">Computer3</span></span>() &#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    /*</span><br><span class="line">    volatile</span><br><span class="line">    作用1 禁止被他修饰变量发生指令重排序</span><br><span class="line">    作用2 禁止CPU使用缓存</span><br><span class="line">    * */</span><br><span class="line">    private static volatile Computer3 computer = null;</span><br><span class="line"></span><br><span class="line">    public static Computer3 <span class="function"><span class="title">getInstance</span></span>() &#123;</span><br><span class="line">        //第二个线程判断对象不为null</span><br><span class="line">        <span class="keyword">if</span> (computer == null) &#123;</span><br><span class="line">            synchronized (Computer3.class) &#123;</span><br><span class="line">                <span class="keyword">if</span> (computer == null) &#123;</span><br><span class="line">                    /*1 new：开辟内存空间</span><br><span class="line">                     * 2 成员变量初始化</span><br><span class="line">                     * 3 将内存中的地址赋值给变量</span><br><span class="line">                     * 此处2和3可能指令重排序</span><br><span class="line">                     * */</span><br><span class="line">                    //第一个线程执行完下边这一句new出来了。</span><br><span class="line">                    computer = new Computer3();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        //此处可能会出错，出错了。线程1的指令重排序是132但是2还没执行就拿不到这个变量的值了</span><br><span class="line">        System.out.println(computer.name);</span><br><span class="line">        <span class="built_in">return</span> computer;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><strong>懒汉式-静态内部类</strong><br>通过静态内部类的方式实现单例模式是线程安全的，同时静态内部类不会在Singleton类加载时就加载，而是在调用getInstance()方法时才进行加载，达到了懒加载的效果。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">package singleton_k;</span><br><span class="line"></span><br><span class="line">public class Computer4 &#123;</span><br><span class="line"></span><br><span class="line">    private <span class="function"><span class="title">Computer4</span></span>() &#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    /*</span><br><span class="line">    * 通过内部类维护单例JVM在类加载的时候，是互斥的，所以可以保证线程安全问题</span><br><span class="line">    * */</span><br><span class="line">    private static class Computer4Factory&#123;</span><br><span class="line">        private static Computer4 computer4 = new Computer4();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static Computer4 <span class="function"><span class="title">getComputer</span></span>()&#123;</span><br><span class="line">        <span class="built_in">return</span> Computer4Factory.computer4;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><strong>懒汉式-枚举</strong><br>利用枚举的特性，让JVM来帮我们保证线程安全和单一实例的问题。除此之外，写法还特别简单。<br>复制代码<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">package singleton_k;</span><br><span class="line"></span><br><span class="line">public enum  Computer4 &#123;</span><br><span class="line">    INSTANCE;</span><br><span class="line">    public void <span class="function"><span class="title">show</span></span>()&#123;</span><br><span class="line">        System.out.println(<span class="string">"....."</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://zzy896.github.io/my-blogs/2020/08/13/单例模式-懒汉式/" data-id="ckdstivjl0005g8ssdxpbhy6h" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-分库分表的基本思想" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/my-blogs/2020/05/05/分库分表的基本思想/" class="article-date">
@@ -89,7 +131,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2020/05/05/分库分表的基本思想/" data-id="ck9tay04v0007tossq3wr9wpl" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2020/05/05/分库分表的基本思想/" data-id="ckdstivjj0004g8ssi3piqeyq" class="article-share-link">Share</a>
       
       
     </footer>
@@ -171,7 +213,7 @@ public void <span class="function"><span class="title">setupMockMvc</span></span
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2020/02/21/springboot单元测试技巧/" data-id="ck9tay064000gtoss6ln5zhwt" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2020/02/21/springboot单元测试技巧/" data-id="ckdstivkl000dg8ssa4f68for" class="article-share-link">Share</a>
       
       
     </footer>
@@ -208,7 +250,7 @@ public void <span class="function"><span class="title">setupMockMvc</span></span
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2020/02/16/全面剖析redis Cluster(redis集群)原理和应用/" data-id="ck9tay04t0006tossk0wshmb1" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2020/02/16/全面剖析redis Cluster(redis集群)原理和应用/" data-id="ckdstivjo0006g8ssdy8z5ymf" class="article-share-link">Share</a>
       
       
     </footer>
@@ -252,7 +294,7 @@ public void <span class="function"><span class="title">setupMockMvc</span></span
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2020/02/14/简述Spring的ApplicationEvent使用/" data-id="ck9tay05k000dtosscvhy4app" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2020/02/14/简述Spring的ApplicationEvent使用/" data-id="ckdstivkv000ig8sss5f6ris9" class="article-share-link">Share</a>
       
       
     </footer>
@@ -305,7 +347,7 @@ public void <span class="function"><span class="title">setupMockMvc</span></span
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2020/02/11/深入理解幂等性/" data-id="ck9tay05h000ctoss0lvzfbh2" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2020/02/11/深入理解幂等性/" data-id="ckdstivkw000jg8ssqqqwxab7" class="article-share-link">Share</a>
       
       
     </footer>
@@ -349,7 +391,7 @@ public void <span class="function"><span class="title">setupMockMvc</span></span
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2020/02/10/深入理解CAS算法原理/" data-id="ck9tay05e000btoss7z7n652f" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2020/02/10/深入理解CAS算法原理/" data-id="ckdstivk1000bg8ss99mooj51" class="article-share-link">Share</a>
       
       
     </footer>
@@ -416,7 +458,7 @@ public void <span class="function"><span class="title">setupMockMvc</span></span
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2020/02/10/volatile详解/" data-id="ck9tay062000ftossdess6z6r" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2020/02/10/volatile详解/" data-id="ckdstivkn000eg8sspcejjy27" class="article-share-link">Share</a>
       
       
     </footer>
@@ -457,7 +499,7 @@ public void <span class="function"><span class="title">setupMockMvc</span></span
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2020/02/05/idea配置查看代码汇编指令插件/" data-id="ck9tay04n0004toss9lv275jz" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2020/02/05/idea配置查看代码汇编指令插件/" data-id="ckdstivkj000cg8ssckd2v4mf" class="article-share-link">Share</a>
       
       
     </footer>
@@ -544,55 +586,7 @@ public void <span class="function"><span class="title">setupMockMvc</span></span
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2020/02/03/分布式锁的几种实现方式/" data-id="ck9tay068000itoss07l23ugg" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-guava之Immutable集合操作" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/my-blogs/2020/01/01/guava之Immutable集合操作/" class="article-date">
-  <time datetime="2020-01-01T01:58:29.000Z" itemprop="datePublished">2020-01-01</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/my-blogs/2020/01/01/guava之Immutable集合操作/">guava之Immutable集合操作</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><strong><em>guava是google的一个库，弥补了java语言的很多方面的不足，很多在java8中已有实现，暂时不展开。Collections是jdk提供的一个工具类。</em></strong><br><strong>1、JDK中实现immutable集合</strong><br>在JDK中提供了Collections.unmodifiableXXX系列方法来实现不可变集合, 但是存在一些问题，下面我们先看一个具体实例：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">public class ImmutableTest &#123;</span><br><span class="line"></span><br><span class="line">    @Test</span><br><span class="line">    public void <span class="function"><span class="title">testJDKImmutable</span></span>()&#123;</span><br><span class="line">        List&lt;String&gt; list=new ArrayList&lt;String&gt;();</span><br><span class="line">        list.add(<span class="string">"a"</span>);</span><br><span class="line">        list.add(<span class="string">"b"</span>);</span><br><span class="line">        list.add(<span class="string">"c"</span>);</span><br><span class="line"></span><br><span class="line">        //通过list创建一个不可变的unmodifiableList集合</span><br><span class="line">        List&lt;String&gt; unmodifiableList=Collections.unmodifiableList(list);</span><br><span class="line">        System.out.println(unmodifiableList);</span><br><span class="line"></span><br><span class="line">        //通过list添加元素</span><br><span class="line">        list.add(<span class="string">"ddd"</span>);</span><br><span class="line">        System.out.println(<span class="string">"往list添加一个元素:"</span>+list);</span><br><span class="line">        System.out.println(<span class="string">"通过list添加元素之后的unmodifiableList:"</span>+unmodifiableList);</span><br><span class="line"></span><br><span class="line">        //通过unmodifiableList添加元素</span><br><span class="line">        unmodifiableList.add(<span class="string">"eee"</span>);</span><br><span class="line">        System.out.println(<span class="string">"往unmodifiableList添加一个元素:"</span>+unmodifiableList);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>运行结果：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[a,b,c]</span><br><span class="line">往list添加一个元素:[a,b,c,ddd]</span><br><span class="line">通过list添加元素之后的unmodifiableList:[a,b,c,ddd]</span><br><span class="line"></span><br><span class="line">java.lang.UnsupportedOperationException </span><br><span class="line">      at java.util.Collections<span class="variable">$UnmodifiableCollection</span>.add(Collections.java:1055)</span><br></pre></td></tr></table></figure></p>
-<p>通过运行结果我们可以看出：虽然unmodifiableList不可以直接添加元素，但是我的list是可以添加元素的，而list的改变也会使unmodifiableList改变。<br>所以说Collections.unmodifiableList实现的不是真正的不可变集合。</p>
-<p><strong>2、Guava的immutable集合</strong><br>Guava提供了对JDK里标准集合类里的immutable版本的简单方便的实现，以及Guava自己的一些专门集合类的immutable实现。当你不希望修改一个集合类，<br>或者想做一个常量集合类的时候，使用immutable集合类就是一个最佳的编程实践。</p>
-<p>注意：每个Guava immutable集合类的实现都拒绝null值。我们做过对Google内部代码的全面的调查，并且发现只有5%的情况下集合类允许null值，而95%的情况下<br>都拒绝null值。万一你真的需要能接受null值的集合类，你可以考虑用Collections.unmodifiableXXX。<br>immutable集合可以有以下几种方式来创建：<br>　　1、用copyOf方法, 譬如, ImmutableSet.copyOf(set)<br>　　2、使用of方法，譬如，ImmutableSet.of(“a”, “b”, “c”)或者ImmutableMap.of(“a”, 1, “b”, 2)<br>　　3、使用Builder类<br>举例：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">@Test</span><br><span class="line">   public void <span class="function"><span class="title">testGuavaImmutable</span></span>()&#123;</span><br><span class="line"></span><br><span class="line">       List&lt;String&gt; list=new ArrayList&lt;String&gt;();</span><br><span class="line">       list.add(<span class="string">"a"</span>);</span><br><span class="line">       list.add(<span class="string">"b"</span>);</span><br><span class="line">       list.add(<span class="string">"c"</span>);</span><br><span class="line"></span><br><span class="line">       ImmutableList&lt;String&gt; imlist=ImmutableList.copyOf(list);</span><br><span class="line">       System.out.println(<span class="string">"imlist："</span>+imlist);</span><br><span class="line"></span><br><span class="line">       ImmutableList&lt;String&gt; imOflist=ImmutableList.of(<span class="string">"peida"</span>,<span class="string">"jerry"</span>,<span class="string">"harry"</span>);</span><br><span class="line">       System.out.println(<span class="string">"imOflist："</span>+imOflist);</span><br><span class="line"></span><br><span class="line">       ImmutableSortedSet&lt;String&gt; imSortList=ImmutableSortedSet.of(<span class="string">"a"</span>, <span class="string">"b"</span>, <span class="string">"c"</span>, <span class="string">"a"</span>, <span class="string">"d"</span>, <span class="string">"b"</span>);</span><br><span class="line">       System.out.println(<span class="string">"imSortList："</span>+imSortList);</span><br><span class="line"></span><br><span class="line">       list.add(<span class="string">"baby"</span>);</span><br><span class="line">       //关键看这里是否imlist也添加新元素了</span><br><span class="line">       System.out.println(<span class="string">"list添加新元素之后看imlist:"</span>+imlist);</span><br><span class="line"></span><br><span class="line">       ImmutableSet&lt;Color&gt; imColorSet =</span><br><span class="line">               ImmutableSet.&lt;Color&gt;builder()</span><br><span class="line">                       .add(new Color(0, 255, 255))</span><br><span class="line">                       .add(new Color(0, 191, 255))</span><br><span class="line">                       .build();</span><br><span class="line"></span><br><span class="line">       System.out.println(<span class="string">"imColorSet:"</span>+imColorSet);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
-<p>运行结果：发现imlist并未改变。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">mlist:[a,b,c]</span><br><span class="line">imOflist:[peida,jerry,harry]</span><br><span class="line">imSortList:[a,b,c,d]</span><br><span class="line">list添加新元素之后看imlist:[a,b,c]</span><br><span class="line">imColorSet:[java.awt.Color[r=0,g=255,b=255],java.awt.Color[r=0,g=191,b=255]]</span><br></pre></td></tr></table></figure></p>
-<p>对于排序的集合来说有例外，因为元素的顺序在构建集合的时候就被固定下来了。譬如，ImmutableSet.of(“a”, “b”, “c”, “a”, “d”, “b”)，对于这个集合的遍历顺序来说就是”a”, “b”, “c”, “d”。<br>更智能的copyOf<br>copyOf方法比你想象的要智能，ImmutableXXX.copyOf会在合适的情况下避免拷贝元素的操作－先忽略具体的细节，但是它的实现一般都是很“智能”的。譬如：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">@Test</span><br><span class="line">        public void <span class="function"><span class="title">testCotyOf</span></span>()&#123;</span><br><span class="line">            ImmutableSet&lt;String&gt; imSet=ImmutableSet.of(<span class="string">"peida"</span>,<span class="string">"jerry"</span>,<span class="string">"harry"</span>,<span class="string">"lisa"</span>);</span><br><span class="line">            System.out.println(<span class="string">"imSet："</span>+imSet);</span><br><span class="line"></span><br><span class="line">            //<span class="built_in">set</span>直接转list</span><br><span class="line">            ImmutableList&lt;String&gt; imlist=ImmutableList.copyOf(imSet);</span><br><span class="line">            System.out.println(<span class="string">"imlist："</span>+imlist);</span><br><span class="line"></span><br><span class="line">            //list直接转SortedSet</span><br><span class="line">            ImmutableSortedSet&lt;String&gt; imSortSet=ImmutableSortedSet.copyOf(imSet);</span><br><span class="line">            System.out.println(<span class="string">"imSortSet："</span>+imSortSet);</span><br><span class="line"></span><br><span class="line">            List&lt;String&gt; list=new ArrayList&lt;String&gt;();</span><br><span class="line">            <span class="keyword">for</span>(int i=0;i&lt;=10;i++)&#123;</span><br><span class="line">                list.add(i+<span class="string">"x"</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            System.out.println(<span class="string">"list："</span>+list);</span><br><span class="line"></span><br><span class="line">            //截取集合部分元素</span><br><span class="line">            ImmutableList&lt;String&gt; imInfolist=ImmutableList.copyOf(list.subList(2, 8));</span><br><span class="line">            System.out.println(<span class="string">"imInfolist："</span>+imInfolist);</span><br></pre></td></tr></table></figure>
-<p>运行结果</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">imSet:[peida,jerry,harry,lisa]</span><br><span class="line">imlist:[peida,jerry,harry,lisa]</span><br><span class="line">imSortSet:[harry,jerry,lisa,peida]</span><br><span class="line">list:[0x,1x,2x,3x,4x,5x,6x,7x,8x,9x,10x]</span><br><span class="line">imInfoList:[2x,3x,4x,5x,6x,7x]</span><br></pre></td></tr></table></figure>
-<p>Guava集合和不可变对应关系<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">可变集合类型               可变集合源：JDK or Guava?         Guava不可变集合</span><br><span class="line">Collection                       JDK                         ImmutableCollection</span><br><span class="line">List                             JDK                         ImmutableList</span><br><span class="line">Set                              JDK                         ImmutableSet</span><br><span class="line">SortedSet/NavigableSet           JDK                         ImmutableSortedSet</span><br><span class="line">Map                              JDK                         ImmutableMap</span><br><span class="line">SortedMap                        JDK                         ImmutableSortedMap</span><br><span class="line">Multiset                         Guava                       ImmutableMultiset</span><br><span class="line">SortedMultiset                   Guava                       ImmutableSortedMultiset</span><br><span class="line">Multimap                         Guava                       ImmutableMultimap</span><br><span class="line">ListMultimap                     Guava                       ImmutableListMultimap</span><br><span class="line">SetMultimap                      Guava                       ImmutableSetMultimap</span><br><span class="line">BiMap                            Guava                       ImmutableBiMap</span><br><span class="line">ClassToInstanceMap               Guava                       ImmutableClassToInstanceMap</span><br><span class="line">Table                            Guava                       ImmutableTable</span><br></pre></td></tr></table></figure></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://zzy896.github.io/my-blogs/2020/01/01/guava之Immutable集合操作/" data-id="ck9tay04j0003tosslee9lge1" class="article-share-link">Share</a>
+      <a data-url="https://zzy896.github.io/my-blogs/2020/02/03/分布式锁的几种实现方式/" data-id="ckdstivkq000gg8ss750xvdos" class="article-share-link">Share</a>
       
       
     </footer>
@@ -625,7 +619,7 @@ public void <span class="function"><span class="title">setupMockMvc</span></span
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2020/02/">February 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/09/">September 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/06/">June 2019</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2020/02/">February 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/09/">September 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/my-blogs/archives/2019/06/">June 2019</a></li></ul>
     </div>
   </div>
 
@@ -636,6 +630,10 @@ public void <span class="function"><span class="title">setupMockMvc</span></span
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/my-blogs/2020/08/13/单例模式-懒汉式/">单例模式-懒汉式</a>
+          </li>
         
           <li>
             <a href="/my-blogs/2020/05/05/分库分表的基本思想/">分库分表的基本思想</a>
@@ -651,10 +649,6 @@ public void <span class="function"><span class="title">setupMockMvc</span></span
         
           <li>
             <a href="/my-blogs/2020/02/14/简述Spring的ApplicationEvent使用/">简述Spring的ApplicationEvent使用</a>
-          </li>
-        
-          <li>
-            <a href="/my-blogs/2020/02/11/深入理解幂等性/">深入理解幂等性</a>
           </li>
         
       </ul>
